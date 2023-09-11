@@ -19,29 +19,30 @@ public class BondDiscountingPriceModel {
     public BondCalculationResult calculateBondPrice(BondInstrument instrument,
                                                     double yieldPerYear,
                                                     LocalDate now) {
-        if (now.isBefore(instrument.startDate())) {
-            now = instrument.startDate();
-        }
-
-        List<CouponPeriod> periods = generateCouponPeriods(instrument);
-        return calculatePresentValue(instrument, periods, timeToMaturity -> yieldPerYear, now);
+        return calculateBondPrice(instrument, timeToMaturity -> yieldPerYear, now);
     }
 
     public BondCalculationResult calculateBondPrice(BondInstrument instrument,
                                                     YieldCurve yieldCurve,
                                                     LocalDate now) {
-        if (now.isBefore(instrument.startDate())) {
-            now = instrument.startDate();
-        }
-
-        List<CouponPeriod> periods = generateCouponPeriods(instrument);
-        return calculatePresentValue(instrument, periods, yieldCurve::getYield, now);
+        return calculateBondPrice(instrument, yieldCurve::getYield, now);
     }
 
-    private BondCalculationResult calculatePresentValue(BondInstrument bondInstrument,
-                                                        List<CouponPeriod> periods,
-                                                        DoubleUnaryOperator yieldAtMaturityExtractor,
-                                                        LocalDate now) {
+    private BondCalculationResult calculateBondPrice(BondInstrument bondInstrument,
+                                                     DoubleUnaryOperator yieldAtMaturityExtractor,
+                                                     LocalDate now) {
+        if (now.isBefore(bondInstrument.startDate())) {
+            now = bondInstrument.startDate();
+        }
+
+        List<CouponPeriod> periods = generateCouponPeriods(bondInstrument);
+        return calculateBondPrice(bondInstrument, yieldAtMaturityExtractor, now, periods);
+    }
+
+    private BondCalculationResult calculateBondPrice(BondInstrument bondInstrument,
+                                                     DoubleUnaryOperator yieldAtMaturityExtractor,
+                                                     LocalDate now,
+                                                     List<CouponPeriod> periods) {
         double presentValue = 0;
         double accruedInterest = 0;
         LocalDate maturityDate = bondInstrument.maturityDate();
