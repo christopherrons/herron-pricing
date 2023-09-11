@@ -2,6 +2,7 @@ package com.herron.exchange.pricingengine.server.theoretical.fixedincome.bonds;
 
 import com.herron.exchange.common.api.common.api.BondInstrument;
 import com.herron.exchange.common.api.common.enums.CompoundingMethodEnum;
+import com.herron.exchange.pricingengine.server.curves.YieldCurve;
 import com.herron.exchange.pricingengine.server.theoretical.fixedincome.bonds.model.BondCalculationResult;
 import com.herron.exchange.pricingengine.server.theoretical.fixedincome.bonds.model.CouponPeriod;
 
@@ -15,9 +16,9 @@ import static com.herron.exchange.pricingengine.server.theoretical.fixedincome.b
 public class BondDiscountingPriceModel {
     private static final long DAYS_PER_YEAR = 365;
 
-    public BondCalculationResult calculateWithConstantYield(BondInstrument instrument,
-                                                            double yieldPerYear,
-                                                            LocalDate now) {
+    public BondCalculationResult calculateBondPrice(BondInstrument instrument,
+                                                    double yieldPerYear,
+                                                    LocalDate now) {
         if (now.isBefore(instrument.startDate())) {
             now = instrument.startDate();
         }
@@ -26,9 +27,20 @@ public class BondDiscountingPriceModel {
         return calculatePresentValue(instrument, periods, timeToMaturity -> yieldPerYear, now);
     }
 
+    public BondCalculationResult calculateBondPrice(BondInstrument instrument,
+                                                    YieldCurve yieldCurve,
+                                                    LocalDate now) {
+        if (now.isBefore(instrument.startDate())) {
+            now = instrument.startDate();
+        }
+
+        List<CouponPeriod> periods = generateCouponPeriods(instrument);
+        return calculatePresentValue(instrument, periods, yieldCurve::getYield, now);
+    }
+
     private BondCalculationResult calculatePresentValue(BondInstrument bondInstrument,
                                                         List<CouponPeriod> periods,
-                                                        DoubleUnaryOperator yieldPerYear,
+                                                        DoubleUnaryOperator yieldAtMaturityExtractor,
                                                         LocalDate now) {
         double presentValue = 0;
         double accruedInterest = 0;
@@ -42,19 +54,19 @@ public class BondDiscountingPriceModel {
                 accruedInterest += calculateAccruedInterest(period, now);
             }
 
-            presentValue += period.couponRate() / calculateDiscountFactor(bondInstrument, period.startDate(), maturityDate, yieldPerYear);
+            presentValue += period.couponRate() / calculateDiscountFactor(bondInstrument, period.startDate(), maturityDate, yieldAtMaturityExtractor);
         }
 
-        var discountedFaceValue = 1 / calculateDiscountFactor(bondInstrument, now, maturityDate, yieldPerYear);
+        var discountedFaceValue = 1 / calculateDiscountFactor(bondInstrument, now, maturityDate, yieldAtMaturityExtractor);
         presentValue += discountedFaceValue;
 
         return new BondCalculationResult(presentValue * bondInstrument.nominalValue(), accruedInterest * bondInstrument.nominalValue());
     }
 
-    private double calculateDiscountFactor(BondInstrument bondInstrument, LocalDate now, LocalDate maturityDate, DoubleUnaryOperator yieldPerYear) {
+    private double calculateDiscountFactor(BondInstrument bondInstrument, LocalDate now, LocalDate maturityDate, DoubleUnaryOperator yieldAtMaturityExtractor) {
         var timeToMaturity = ChronoUnit.YEARS.between(now, maturityDate);
-        double yieldAtTime = yieldPerYear.applyAsDouble(timeToMaturity);
-        return calculateDiscountFactor(bondInstrument.compoundingMethod(), yieldAtTime, timeToMaturity, bondInstrument.couponYearlyFrequency());
+        double yieldAtTimeToMaturity = yieldAtMaturityExtractor.applyAsDouble(timeToMaturity);
+        return calculateDiscountFactor(bondInstrument.compoundingMethod(), yieldAtTimeToMaturity, timeToMaturity, bondInstrument.couponYearlyFrequency());
     }
 
     private double calculateAccruedInterest(CouponPeriod period, LocalDate now) {

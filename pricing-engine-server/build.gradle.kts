@@ -6,6 +6,7 @@ dependencies {
     implementation(libs.javax.json)
     implementation(libs.javafaker)
     implementation(libs.spring.kafka)
+    implementation(libs.commons.math)
 
     // Internal Libs
     implementation(libs.common.api)

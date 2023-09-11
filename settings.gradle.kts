@@ -12,8 +12,9 @@ dependencyResolutionManagement {
             library("javax.json.api", "javax.json:javax.json-api:1.1.4")
             library("javax.json", "org.glassfish:javax.json:1.1.4")
             library("javafaker", "com.github.javafaker:javafaker:1.0.2")
-            library("common.api", "com.herron.exchange:common-api:1.0.73")
-            library("common", "com.herron.exchange:common:1.0.73")
+            library("commons.math", "org.apache.commons:commons-math3:3.2")
+            library("common.api", "com.herron.exchange:common-api:1.0.76")
+            library("common", "com.herron.exchange:common:1.0.76")
         }
 
         create("testlibs") {
