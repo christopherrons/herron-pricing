@@ -3,6 +3,8 @@ package com.herron.exchange.pricingengine.server.theoretical.fixedincome.bonds;
 import com.herron.exchange.common.api.common.enums.CompoundingMethodEnum;
 import com.herron.exchange.common.api.common.enums.DayCountConvetionEnum;
 import com.herron.exchange.common.api.common.messages.HerronBondInstrument;
+import com.herron.exchange.common.api.common.model.BusinessCalendar;
+import com.herron.exchange.common.api.common.model.Market;
 import com.herron.exchange.pricingengine.server.curves.YieldCurve;
 import com.herron.exchange.pricingengine.server.curves.YieldRefData;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,7 +34,8 @@ class BondDiscountingPriceModelTest {
                 1000,
                 CompoundingMethodEnum.COMPOUNDING,
                 0.04,
-                DayCountConvetionEnum.ACT365);
+                DayCountConvetionEnum.ACT365,
+                new Market("market", BusinessCalendar.noHolidayCalendar()));
 
         LocalDate now = LocalDate.of(2021, 6, 30);
         var result = bondPriceModel.calculateBondPrice(bond, 0, now);
@@ -48,7 +51,8 @@ class BondDiscountingPriceModelTest {
                 1000,
                 CompoundingMethodEnum.COMPOUNDING,
                 0.05,
-                DayCountConvetionEnum.ACT365);
+                DayCountConvetionEnum.ACT365,
+                new Market("market", BusinessCalendar.noHolidayCalendar()));
 
         LocalDate now = LocalDate.of(2011, 4, 30);
         var result = bondPriceModel.calculateBondPrice(bond, 0.04, now);
@@ -64,7 +68,8 @@ class BondDiscountingPriceModelTest {
                 1000,
                 CompoundingMethodEnum.COMPOUNDING,
                 0.00,
-                DayCountConvetionEnum.ACT365);
+                DayCountConvetionEnum.ACT365,
+                new Market("market", BusinessCalendar.noHolidayCalendar()));
 
         LocalDate now = LocalDate.of(2019, 1, 1);
         var result = bondPriceModel.calculateBondPrice(bond, 0.05, now);
@@ -82,7 +87,8 @@ class BondDiscountingPriceModelTest {
                 1000,
                 CompoundingMethodEnum.COMPOUNDING,
                 0.05,
-                DayCountConvetionEnum.ACT365);
+                DayCountConvetionEnum.ACT365,
+                new Market("market", BusinessCalendar.noHolidayCalendar()));
 
         LocalDate now = LocalDate.of(2020, 1, 1);
         var result = bondPriceModel.calculateBondPrice(bond, 0.03, now);
@@ -100,7 +106,8 @@ class BondDiscountingPriceModelTest {
                 1000,
                 CompoundingMethodEnum.COMPOUNDING,
                 0.025,
-                DayCountConvetionEnum.ACT365);
+                DayCountConvetionEnum.ACT365,
+                new Market("market", BusinessCalendar.noHolidayCalendar()));
 
         LocalDate now = LocalDate.of(2020, 1, 1);
         var result = bondPriceModel.calculateBondPrice(bond, 0.04, now);
@@ -118,13 +125,33 @@ class BondDiscountingPriceModelTest {
                 1000,
                 CompoundingMethodEnum.COMPOUNDING,
                 0.025,
-                DayCountConvetionEnum.ACT365);
+                DayCountConvetionEnum.ACT365,
+                new Market("market", BusinessCalendar.noHolidayCalendar()));
 
         LocalDate now = LocalDate.of(2020, 1, 1);
         var result = bondPriceModel.calculateBondPrice(bond, 0.04, now);
         assertEquals(798.83, result.cleanPrice(), 1);
         assertEquals(result.cleanPrice(), result.dirtyPrice(), 0.01);
         assertEquals(0, result.accruedInterest(), 0);
+    }
+
+    @Test
+    void test_constant_yield_compounding_interest__30360_pricing_4() {
+        var bond = new HerronBondInstrument("instrumentId",
+                2,
+                LocalDate.of(2028, 10, 1),
+                LocalDate.of(2023, 1, 1),
+                1000,
+                CompoundingMethodEnum.COMPOUNDING,
+                0.015,
+                DayCountConvetionEnum.BOND_BASIS_30360,
+                new Market("market", BusinessCalendar.noHolidayCalendar()));
+
+        LocalDate now = LocalDate.of(2020, 1, 1);
+        var result = bondPriceModel.calculateBondPrice(bond, 0.1, now);
+        assertEquals(677.91, result.cleanPrice(), 0.01);
+        assertEquals(result.cleanPrice(), result.dirtyPrice(), 0.01);
+        assertEquals(0.00, result.accruedInterest(), 0.001);
     }
 
     @Test
@@ -136,7 +163,8 @@ class BondDiscountingPriceModelTest {
                 1000,
                 CompoundingMethodEnum.COMPOUNDING,
                 0.025,
-                DayCountConvetionEnum.ACT365);
+                DayCountConvetionEnum.ACT365,
+                new Market("market", BusinessCalendar.noHolidayCalendar()));
 
         YieldCurve curve = createTestCurve();
         LocalDate now = LocalDate.of(2020, 1, 1);
