@@ -12,16 +12,17 @@ public class CouponCalculationUtils {
     private static final long DAYS_PER_YEAR = 365;
 
     public static List<CouponPeriod> generateCouponPeriods(BondInstrument instrument) {
-        if (isZeroCoupon(instrument)) {
+        if (instrument.isZeroCouponBond()) {
             return List.of();
         }
+
         // This does not handle all corner cases
         var startDate = instrument.startDate();
         var maturityDate = instrument.maturityDate();
 
         double totalYearsToMaturity = ChronoUnit.YEARS.between(startDate, maturityDate);
-        long totalNumberOfCouponPeriods = (long) totalYearsToMaturity * instrument.couponYearlyFrequency();
-        long nrOfMonthsPerPeriod = 12 / instrument.couponYearlyFrequency();
+        long totalNumberOfCouponPeriods = (long) totalYearsToMaturity * instrument.couponAnnualFrequency();
+        long nrOfMonthsPerPeriod = 12 / instrument.couponAnnualFrequency();
 
         List<CouponPeriod> couponPeriods = new ArrayList<>();
         for (int period = 0; period < totalNumberOfCouponPeriods; period++) {
@@ -34,15 +35,11 @@ public class CouponCalculationUtils {
                     new CouponPeriod(
                             couponStartDate,
                             couponEndDate,
-                            instrument.couponRate() / instrument.couponYearlyFrequency()
+                            instrument.couponRate() / instrument.couponAnnualFrequency()
                     )
             );
         }
         couponPeriods.sort(Comparator.comparing(CouponPeriod::startDate));
         return couponPeriods;
-    }
-
-    private static boolean isZeroCoupon(BondInstrument instrument) {
-        return instrument.couponRate() == 0;
     }
 }

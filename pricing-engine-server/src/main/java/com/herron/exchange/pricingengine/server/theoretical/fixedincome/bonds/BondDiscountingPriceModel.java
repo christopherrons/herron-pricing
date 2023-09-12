@@ -2,6 +2,7 @@ package com.herron.exchange.pricingengine.server.theoretical.fixedincome.bonds;
 
 import com.herron.exchange.common.api.common.api.BondInstrument;
 import com.herron.exchange.common.api.common.enums.CompoundingMethodEnum;
+import com.herron.exchange.common.api.common.enums.DayCountConvetionEnum;
 import com.herron.exchange.pricingengine.server.curves.YieldCurve;
 import com.herron.exchange.pricingengine.server.theoretical.fixedincome.bonds.model.BondCalculationResult;
 import com.herron.exchange.pricingengine.server.theoretical.fixedincome.bonds.model.CouponPeriod;
@@ -52,7 +53,7 @@ public class BondDiscountingPriceModel {
             }
 
             if (period.isInPeriod(now)) {
-                accruedInterest += calculateAccruedInterest(period, now);
+                accruedInterest += calculateAccruedInterest(bondInstrument.couponRate(), period.startDate(), now, bondInstrument.dayCountConvention());
             }
 
             presentValue += period.couponRate() / calculateDiscountFactor(bondInstrument, period.startDate(), maturityDate, yieldAtMaturityExtractor);
@@ -67,13 +68,11 @@ public class BondDiscountingPriceModel {
     private double calculateDiscountFactor(BondInstrument bondInstrument, LocalDate now, LocalDate maturityDate, DoubleUnaryOperator yieldAtMaturityExtractor) {
         var timeToMaturity = ChronoUnit.YEARS.between(now, maturityDate);
         double yieldAtTimeToMaturity = yieldAtMaturityExtractor.applyAsDouble(timeToMaturity);
-        return calculateDiscountFactor(bondInstrument.compoundingMethod(), yieldAtTimeToMaturity, timeToMaturity, bondInstrument.couponYearlyFrequency());
+        return calculateDiscountFactor(bondInstrument.compoundingMethod(), yieldAtTimeToMaturity, timeToMaturity, bondInstrument.couponAnnualFrequency());
     }
 
-    private double calculateAccruedInterest(CouponPeriod period, LocalDate now) {
-        double nrOfDaysAccruedInPeriod = ChronoUnit.DAYS.between(period.startDate(), now);
-        double ratioOfPeriodPassed = nrOfDaysAccruedInPeriod / period.nrOfDaysInPeriod();
-        return period.couponRate() * ratioOfPeriodPassed;
+    private double calculateAccruedInterest(double annualCouponRate, LocalDate startDate, LocalDate now, DayCountConvetionEnum dayCountConvetion) {
+        return annualCouponRate * dayCountConvetion.calculateDayCountFraction(startDate, now);
     }
 
     private double calculateDiscountFactor(CompoundingMethodEnum compoundingMethodEnum,
