@@ -2,7 +2,7 @@ package com.herron.exchange.pricingengine;
 
 import com.herron.exchange.common.api.common.enums.KafkaTopicEnum;
 import com.herron.exchange.common.api.common.kafka.KafkaBroadcastHandler;
-import com.herron.exchange.common.api.common.model.PartitionKey;
+import com.herron.exchange.common.api.common.messages.common.PartitionKey;
 import com.herron.exchange.pricingengine.server.marketdata.EurexPreviousDaySettlementHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

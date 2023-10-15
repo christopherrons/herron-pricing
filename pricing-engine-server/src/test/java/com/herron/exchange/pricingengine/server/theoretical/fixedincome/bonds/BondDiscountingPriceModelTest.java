@@ -1,13 +1,15 @@
 package com.herron.exchange.pricingengine.server.theoretical.fixedincome.bonds;
 
 import com.herron.exchange.common.api.common.api.referencedata.exchange.BusinessCalendar;
+import com.herron.exchange.common.api.common.api.referencedata.exchange.Market;
 import com.herron.exchange.common.api.common.api.referencedata.exchange.Product;
 import com.herron.exchange.common.api.common.api.referencedata.instruments.BondInstrument;
 import com.herron.exchange.common.api.common.enums.CompoundingMethodEnum;
 import com.herron.exchange.common.api.common.enums.DayCountConvetionEnum;
-import com.herron.exchange.common.api.common.messages.refdata.ImmutableHerronBondInstrument;
-import com.herron.exchange.common.api.common.messages.refdata.ImmutableHerronProduct;
-import com.herron.exchange.common.api.common.model.HerronBusinessCalendar;
+import com.herron.exchange.common.api.common.messages.common.DefaultBusinessCalendar;
+import com.herron.exchange.common.api.common.messages.refdata.ImmutableDefaultBondInstrument;
+import com.herron.exchange.common.api.common.messages.refdata.ImmutableDefaultMarket;
+import com.herron.exchange.common.api.common.messages.refdata.ImmutableDefaultProduct;
 import com.herron.exchange.pricingengine.server.curves.YieldCurve;
 import com.herron.exchange.pricingengine.server.curves.YieldRefData;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,7 +40,7 @@ class BondDiscountingPriceModelTest {
                 CompoundingMethodEnum.COMPOUNDING,
                 0.04,
                 DayCountConvetionEnum.ACT365,
-                buildProduct(HerronBusinessCalendar.noHolidayCalendar())
+                buildProduct(DefaultBusinessCalendar.noHolidayCalendar())
         );
 
         LocalDate now = LocalDate.of(2021, 6, 30);
@@ -56,7 +58,7 @@ class BondDiscountingPriceModelTest {
                 CompoundingMethodEnum.COMPOUNDING,
                 0.05,
                 DayCountConvetionEnum.ACT365,
-                buildProduct(HerronBusinessCalendar.noHolidayCalendar())
+                buildProduct(DefaultBusinessCalendar.noHolidayCalendar())
         );
 
         LocalDate now = LocalDate.of(2011, 4, 30);
@@ -74,7 +76,7 @@ class BondDiscountingPriceModelTest {
                 CompoundingMethodEnum.COMPOUNDING,
                 0.00,
                 DayCountConvetionEnum.ACT365,
-                buildProduct(HerronBusinessCalendar.noHolidayCalendar())
+                buildProduct(DefaultBusinessCalendar.noHolidayCalendar())
         );
 
         LocalDate now = LocalDate.of(2019, 1, 1);
@@ -94,7 +96,7 @@ class BondDiscountingPriceModelTest {
                 CompoundingMethodEnum.COMPOUNDING,
                 0.05,
                 DayCountConvetionEnum.ACT365,
-                buildProduct(HerronBusinessCalendar.noHolidayCalendar()));
+                buildProduct(DefaultBusinessCalendar.noHolidayCalendar()));
 
         LocalDate now = LocalDate.of(2020, 1, 1);
         var result = bondPriceModel.calculateBondPrice(bond, 0.03, now);
@@ -113,7 +115,7 @@ class BondDiscountingPriceModelTest {
                 CompoundingMethodEnum.COMPOUNDING,
                 0.025,
                 DayCountConvetionEnum.ACT365,
-                buildProduct(HerronBusinessCalendar.noHolidayCalendar())
+                buildProduct(DefaultBusinessCalendar.noHolidayCalendar())
         );
 
         LocalDate now = LocalDate.of(2020, 1, 1);
@@ -133,7 +135,7 @@ class BondDiscountingPriceModelTest {
                 CompoundingMethodEnum.COMPOUNDING,
                 0.025,
                 DayCountConvetionEnum.ACT365,
-                buildProduct(HerronBusinessCalendar.noHolidayCalendar())
+                buildProduct(DefaultBusinessCalendar.noHolidayCalendar())
         );
 
         LocalDate now = LocalDate.of(2020, 1, 1);
@@ -153,7 +155,7 @@ class BondDiscountingPriceModelTest {
                 CompoundingMethodEnum.COMPOUNDING,
                 0.015,
                 DayCountConvetionEnum.BOND_BASIS_30360,
-                buildProduct(HerronBusinessCalendar.noHolidayCalendar())
+                buildProduct(DefaultBusinessCalendar.noHolidayCalendar())
         );
 
         LocalDate now = LocalDate.of(2020, 1, 1);
@@ -173,7 +175,7 @@ class BondDiscountingPriceModelTest {
                 CompoundingMethodEnum.COMPOUNDING,
                 0.025,
                 DayCountConvetionEnum.ACT365,
-                buildProduct(HerronBusinessCalendar.noHolidayCalendar())
+                buildProduct(DefaultBusinessCalendar.noHolidayCalendar())
         );
 
         YieldCurve curve = createTestCurve();
@@ -185,8 +187,17 @@ class BondDiscountingPriceModelTest {
     }
 
     private Product buildProduct(BusinessCalendar businessCalendar) {
-        return ImmutableHerronProduct.builder()
+        return ImmutableDefaultProduct.builder()
                 .productId("product")
+                .businessCalendar(businessCalendar)
+                .market(buildMarket(businessCalendar))
+                .currency("eur")
+                .build();
+    }
+
+    private Market buildMarket(BusinessCalendar businessCalendar) {
+        return ImmutableDefaultMarket.builder()
+                .marketId("market")
                 .businessCalendar(businessCalendar)
                 .build();
     }
@@ -199,7 +210,7 @@ class BondDiscountingPriceModelTest {
                                            double couponRate,
                                            DayCountConvetionEnum dayCountConvetionEnum,
                                            Product product) {
-        return ImmutableHerronBondInstrument.builder()
+        return ImmutableDefaultBondInstrument.builder()
                 .instrumentId("instrumentId")
                 .couponAnnualFrequency(frequency)
                 .maturityDate(maturityData)
@@ -209,6 +220,8 @@ class BondDiscountingPriceModelTest {
                 .couponRate(couponRate)
                 .dayCountConvention(dayCountConvetionEnum)
                 .product(product)
+                .firstTradingDate(LocalDate.MIN)
+                .lastTradingDate(LocalDate.MAX)
                 .build();
     }
 
