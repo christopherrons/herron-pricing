@@ -35,7 +35,7 @@ public class PricingEngineConfig {
         return new EurexPreviousDaySettlementHandler(eurexReferenceDataApiClient);
     }
 
-    @Bean
+    @Bean(initMethod = "init")
     public PricingEngineBootloader pricingEngineBootloader(KafkaBroadcastHandler kafkaBroadcastHandler, EurexPreviousDaySettlementHandler eurexPreviousDaySettlementHandler) {
         return new PricingEngineBootloader(eurexPreviousDaySettlementHandler, kafkaBroadcastHandler);
     }
