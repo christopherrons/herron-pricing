@@ -1,6 +1,6 @@
 package com.herron.exchange.pricingengine.server.theoretical.fixedincome.bonds;
 
-import com.herron.exchange.common.api.common.api.BondInstrument;
+import com.herron.exchange.common.api.common.api.referencedata.instruments.BondInstrument;
 import com.herron.exchange.common.api.common.enums.CompoundingMethodEnum;
 import com.herron.exchange.common.api.common.enums.DayCountConvetionEnum;
 import com.herron.exchange.pricingengine.server.curves.YieldCurve;

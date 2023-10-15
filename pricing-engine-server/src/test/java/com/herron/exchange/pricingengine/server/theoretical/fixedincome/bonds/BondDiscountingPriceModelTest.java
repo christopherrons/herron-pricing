@@ -1,10 +1,13 @@
 package com.herron.exchange.pricingengine.server.theoretical.fixedincome.bonds;
 
+import com.herron.exchange.common.api.common.api.referencedata.exchange.BusinessCalendar;
+import com.herron.exchange.common.api.common.api.referencedata.exchange.Product;
+import com.herron.exchange.common.api.common.api.referencedata.instruments.BondInstrument;
 import com.herron.exchange.common.api.common.enums.CompoundingMethodEnum;
 import com.herron.exchange.common.api.common.enums.DayCountConvetionEnum;
-import com.herron.exchange.common.api.common.messages.HerronBondInstrument;
-import com.herron.exchange.common.api.common.model.BusinessCalendar;
-import com.herron.exchange.common.api.common.model.Market;
+import com.herron.exchange.common.api.common.messages.refdata.ImmutableHerronBondInstrument;
+import com.herron.exchange.common.api.common.messages.refdata.ImmutableHerronProduct;
+import com.herron.exchange.common.api.common.model.HerronBusinessCalendar;
 import com.herron.exchange.pricingengine.server.curves.YieldCurve;
 import com.herron.exchange.pricingengine.server.curves.YieldRefData;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,7 +30,7 @@ class BondDiscountingPriceModelTest {
 
     @Test
     void test_zero_yield_compounding_interest_with_accrued_interest() {
-        var bond = new HerronBondInstrument("instrumentId",
+        var bond = buildInstrument(
                 2,
                 LocalDate.of(2023, 1, 1),
                 LocalDate.of(2021, 1, 1),
@@ -35,7 +38,8 @@ class BondDiscountingPriceModelTest {
                 CompoundingMethodEnum.COMPOUNDING,
                 0.04,
                 DayCountConvetionEnum.ACT365,
-                new Market("market", BusinessCalendar.noHolidayCalendar()));
+                buildProduct(HerronBusinessCalendar.noHolidayCalendar())
+        );
 
         LocalDate now = LocalDate.of(2021, 6, 30);
         var result = bondPriceModel.calculateBondPrice(bond, 0, now);
@@ -44,7 +48,7 @@ class BondDiscountingPriceModelTest {
 
     @Test
     void test_constant_yield_compounding_interest_with_accrued_interest() {
-        var bond = new HerronBondInstrument("instrumentId",
+        var bond = buildInstrument(
                 2,
                 LocalDate.of(2031, 1, 1),
                 LocalDate.of(2011, 1, 1),
@@ -52,7 +56,8 @@ class BondDiscountingPriceModelTest {
                 CompoundingMethodEnum.COMPOUNDING,
                 0.05,
                 DayCountConvetionEnum.ACT365,
-                new Market("market", BusinessCalendar.noHolidayCalendar()));
+                buildProduct(HerronBusinessCalendar.noHolidayCalendar())
+        );
 
         LocalDate now = LocalDate.of(2011, 4, 30);
         var result = bondPriceModel.calculateBondPrice(bond, 0.04, now);
@@ -61,7 +66,7 @@ class BondDiscountingPriceModelTest {
 
     @Test
     void test_zero_coupon_pricing() {
-        var bond = new HerronBondInstrument("instrumentId",
+        var bond = buildInstrument(
                 1,
                 LocalDate.of(2040, 1, 1),
                 LocalDate.of(2020, 1, 1),
@@ -69,7 +74,8 @@ class BondDiscountingPriceModelTest {
                 CompoundingMethodEnum.COMPOUNDING,
                 0.00,
                 DayCountConvetionEnum.ACT365,
-                new Market("market", BusinessCalendar.noHolidayCalendar()));
+                buildProduct(HerronBusinessCalendar.noHolidayCalendar())
+        );
 
         LocalDate now = LocalDate.of(2019, 1, 1);
         var result = bondPriceModel.calculateBondPrice(bond, 0.05, now);
@@ -80,7 +86,7 @@ class BondDiscountingPriceModelTest {
 
     @Test
     void test_constant_yield_compounding_interest_pricing() {
-        var bond = new HerronBondInstrument("instrumentId",
+        var bond = buildInstrument(
                 2,
                 LocalDate.of(2023, 1, 1),
                 LocalDate.of(2021, 1, 1),
@@ -88,7 +94,7 @@ class BondDiscountingPriceModelTest {
                 CompoundingMethodEnum.COMPOUNDING,
                 0.05,
                 DayCountConvetionEnum.ACT365,
-                new Market("market", BusinessCalendar.noHolidayCalendar()));
+                buildProduct(HerronBusinessCalendar.noHolidayCalendar()));
 
         LocalDate now = LocalDate.of(2020, 1, 1);
         var result = bondPriceModel.calculateBondPrice(bond, 0.03, now);
@@ -99,7 +105,7 @@ class BondDiscountingPriceModelTest {
 
     @Test
     void test_constant_yield_compounding_interest_pricing_2() {
-        var bond = new HerronBondInstrument("instrumentId",
+        var bond = buildInstrument(
                 1,
                 LocalDate.of(2040, 1, 1),
                 LocalDate.of(2020, 1, 1),
@@ -107,7 +113,8 @@ class BondDiscountingPriceModelTest {
                 CompoundingMethodEnum.COMPOUNDING,
                 0.025,
                 DayCountConvetionEnum.ACT365,
-                new Market("market", BusinessCalendar.noHolidayCalendar()));
+                buildProduct(HerronBusinessCalendar.noHolidayCalendar())
+        );
 
         LocalDate now = LocalDate.of(2020, 1, 1);
         var result = bondPriceModel.calculateBondPrice(bond, 0.04, now);
@@ -118,7 +125,7 @@ class BondDiscountingPriceModelTest {
 
     @Test
     void test_constant_yield_compounding_interest_pricing_3() {
-        var bond = new HerronBondInstrument("instrumentId",
+        var bond = buildInstrument(
                 2,
                 LocalDate.of(2040, 1, 1),
                 LocalDate.of(2020, 1, 1),
@@ -126,7 +133,8 @@ class BondDiscountingPriceModelTest {
                 CompoundingMethodEnum.COMPOUNDING,
                 0.025,
                 DayCountConvetionEnum.ACT365,
-                new Market("market", BusinessCalendar.noHolidayCalendar()));
+                buildProduct(HerronBusinessCalendar.noHolidayCalendar())
+        );
 
         LocalDate now = LocalDate.of(2020, 1, 1);
         var result = bondPriceModel.calculateBondPrice(bond, 0.04, now);
@@ -137,7 +145,7 @@ class BondDiscountingPriceModelTest {
 
     @Test
     void test_constant_yield_compounding_interest__30360_pricing_4() {
-        var bond = new HerronBondInstrument("instrumentId",
+        var bond = buildInstrument(
                 2,
                 LocalDate.of(2028, 10, 1),
                 LocalDate.of(2023, 1, 1),
@@ -145,7 +153,8 @@ class BondDiscountingPriceModelTest {
                 CompoundingMethodEnum.COMPOUNDING,
                 0.015,
                 DayCountConvetionEnum.BOND_BASIS_30360,
-                new Market("market", BusinessCalendar.noHolidayCalendar()));
+                buildProduct(HerronBusinessCalendar.noHolidayCalendar())
+        );
 
         LocalDate now = LocalDate.of(2020, 1, 1);
         var result = bondPriceModel.calculateBondPrice(bond, 0.1, now);
@@ -156,7 +165,7 @@ class BondDiscountingPriceModelTest {
 
     @Test
     void test_bond_price_with_curve() {
-        var bond = new HerronBondInstrument("instrumentId",
+        var bond = buildInstrument(
                 2,
                 LocalDate.of(2040, 1, 1),
                 LocalDate.of(2020, 1, 1),
@@ -164,7 +173,8 @@ class BondDiscountingPriceModelTest {
                 CompoundingMethodEnum.COMPOUNDING,
                 0.025,
                 DayCountConvetionEnum.ACT365,
-                new Market("market", BusinessCalendar.noHolidayCalendar()));
+                buildProduct(HerronBusinessCalendar.noHolidayCalendar())
+        );
 
         YieldCurve curve = createTestCurve();
         LocalDate now = LocalDate.of(2020, 1, 1);
@@ -172,6 +182,34 @@ class BondDiscountingPriceModelTest {
         assertEquals(812.32, result.cleanPrice(), 1);
         assertEquals(result.cleanPrice(), result.dirtyPrice(), 0.01);
         assertEquals(0, result.accruedInterest(), 0);
+    }
+
+    private Product buildProduct(BusinessCalendar businessCalendar) {
+        return ImmutableHerronProduct.builder()
+                .productId("product")
+                .businessCalendar(businessCalendar)
+                .build();
+    }
+
+    private BondInstrument buildInstrument(int frequency,
+                                           LocalDate maturityData,
+                                           LocalDate startDate,
+                                           double nominalValue,
+                                           CompoundingMethodEnum compoundingMethodEnum,
+                                           double couponRate,
+                                           DayCountConvetionEnum dayCountConvetionEnum,
+                                           Product product) {
+        return ImmutableHerronBondInstrument.builder()
+                .instrumentId("instrumentId")
+                .couponAnnualFrequency(frequency)
+                .maturityDate(maturityData)
+                .startDate(startDate)
+                .compoundingMethod(compoundingMethodEnum)
+                .nominalValue(nominalValue)
+                .couponRate(couponRate)
+                .dayCountConvention(dayCountConvetionEnum)
+                .product(product)
+                .build();
     }
 
     private YieldCurve createTestCurve() {
