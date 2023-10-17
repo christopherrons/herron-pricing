@@ -43,8 +43,8 @@ public class EurexPreviousDaySettlementHandler {
             var previousDate = LocalDateTime.of(LocalDate.parse(contractData.data().contracts().date(), DATE_TIME_FORMATTER), LocalTime.MIDNIGHT).minusDays(1);
             for (var contract : contractData.data().contracts().data()) {
                 previousSettlementPrice.add(
-                        ImmutableDefaultMarketDataPrice.builder().
-                                priceType(PriceType.SETTLEMENT)
+                        ImmutableDefaultMarketDataPrice.builder()
+                                .priceType(PriceType.SETTLEMENT)
                                 .staticKey(ImmutableDefaultMarketDataPriceStaticKey.builder().instrumentId(contract.isin()).build())
                                 .timeComponentKey(ImmutableDefaultTimeComponentKey.builder().timeOfEvent(previousDate).build())
                                 .price(Price.create(contract.previousDaySettlementPrice()))
