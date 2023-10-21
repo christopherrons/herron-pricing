@@ -108,7 +108,7 @@ public class PriceSnapshotHandler {
     }
 
     private void broadcastPrice(MarketDataPrice price) {
-        if (price == null) { //FIXME: Add throttling filter
+        if (price == null) {
             return;
         }
         broadcastHandler.broadcastMessage(REAL_TIME_PRICE_KEY, price);

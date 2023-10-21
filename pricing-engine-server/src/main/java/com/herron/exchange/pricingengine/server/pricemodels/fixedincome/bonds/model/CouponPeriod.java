@@ -1,4 +1,4 @@
-package com.herron.exchange.pricingengine.server.price.models.fixedincome.bonds.model;
+package com.herron.exchange.pricingengine.server.pricemodels.fixedincome.bonds.model;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;

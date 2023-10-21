@@ -1,4 +1,4 @@
-package com.herron.exchange.pricingengine.server.price.models.fixedincome.bonds.model;
+package com.herron.exchange.pricingengine.server.pricemodels.fixedincome.bonds.model;
 
 public record BondCalculationResult(double presentValue, double accruedInterest) {
 

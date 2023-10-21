@@ -1,4 +1,4 @@
-package com.herron.exchange.pricingengine.server.price;
+package com.herron.exchange.pricingengine.server.snapshot;
 
 import com.herron.exchange.common.api.common.api.trading.trades.Trade;
 import com.herron.exchange.common.api.common.messages.common.Price;

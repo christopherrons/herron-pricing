@@ -1,4 +1,4 @@
-package com.herron.exchange.pricingengine.server.price.fixedincome.bonds;
+package com.herron.exchange.pricingengine.server.pricemodels.fixedincome.bonds;
 
 import com.herron.exchange.common.api.common.api.referencedata.exchange.BusinessCalendar;
 import com.herron.exchange.common.api.common.api.referencedata.exchange.Market;
@@ -13,7 +13,6 @@ import com.herron.exchange.common.api.common.messages.refdata.ImmutableDefaultMa
 import com.herron.exchange.common.api.common.messages.refdata.ImmutableDefaultProduct;
 import com.herron.exchange.pricingengine.server.curves.YieldCurve;
 import com.herron.exchange.pricingengine.server.curves.YieldCurveModelParameters;
-import com.herron.exchange.pricingengine.server.price.models.fixedincome.bonds.BondDiscountingPriceModel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
