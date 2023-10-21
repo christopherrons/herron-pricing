@@ -7,6 +7,8 @@ spring:
 
 kafka:
   topic:
+    real-time-prices:
+      nr-of-partitions: 1
     previous-settlement-price-data:
       nr-of-partitions: 1
 

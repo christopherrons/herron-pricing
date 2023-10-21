@@ -1,6 +1,6 @@
 package com.herron.exchange.pricingengine.server.curves;
 
-import com.herron.exchange.common.api.common.math.api.CartesianPoint2d;
+import com.herron.exchange.common.api.common.api.math.CartesianPoint2d;
 import com.herron.exchange.common.api.common.math.model.CubicPolynomial;
 import com.herron.exchange.common.api.common.math.model.Point2d;
 
@@ -50,11 +50,7 @@ public class YieldCurveTestUtils {
 
     public static double getCubicFunctionValue(final double x, final double firstCoeff,
                                                final double secondCoeff, final double thirdCoeff, final double fourthCoeff) {
-        CubicPolynomial polynomial = new CubicPolynomial();
-        polynomial.setFirstCoefficient(firstCoeff);
-        polynomial.setSecondCoefficient(secondCoeff);
-        polynomial.setThirdCoefficient(thirdCoeff);
-        polynomial.setFourthCoefficient(fourthCoeff);
+        CubicPolynomial polynomial = new CubicPolynomial(firstCoeff, secondCoeff, thirdCoeff, fourthCoeff);
         return polynomial.getFunctionValue(x);
     }
 

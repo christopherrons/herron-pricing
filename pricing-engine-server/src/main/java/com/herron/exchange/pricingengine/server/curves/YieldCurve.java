@@ -1,61 +1,49 @@
 package com.herron.exchange.pricingengine.server.curves;
 
 
-import com.herron.exchange.common.api.common.math.api.CartesianPoint2d;
+import com.herron.exchange.common.api.common.api.math.Function2d;
 import com.herron.exchange.common.api.common.math.interpolation.CubicSplineInterpolation;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
 
 public class YieldCurve {
 
-    public final YieldRefData yieldRefData;
-    private final CubicSplineInterpolation splineInterpolation;
-    private final List<CartesianPoint2d> yieldPoints = new ArrayList<>();
+    private final String id;
+    public final YieldCurveModelParameters yieldCurveModelParameters;
+    private final Function2d yieldFunction;
 
-    public YieldCurve(YieldRefData yieldRefData) {
-        this.yieldRefData = yieldRefData;
-        createYieldPoints(yieldRefData.getMaturities(), yieldRefData.getYields());
-        this.splineInterpolation = new CubicSplineInterpolation(yieldPoints);
+    private YieldCurve(String id, YieldCurveModelParameters yieldCurveModelParameters) {
+        this.id = id;
+        this.yieldCurveModelParameters = yieldCurveModelParameters;
+        this.yieldFunction = createYieldFunction();
     }
 
-    private void createYieldPoints(double[] maturities, double[] yields) {
-        for (int i = 0; i < maturities.length; i++) {
-            yieldPoints.add(new YieldPoint(maturities[i], yields[i]));
-        }
-        yieldPoints.sort(Comparator.comparing(CartesianPoint2d::x));
+    public static YieldCurve create(String id, YieldCurveModelParameters yieldCurveModelParameters) {
+        return new YieldCurve(id, yieldCurveModelParameters);
+    }
+
+    private Function2d createYieldFunction() {
+        return switch (yieldCurveModelParameters.interpolationMethod()) {
+            case CUBIC_SPLINE -> CubicSplineInterpolation.create(yieldCurveModelParameters.yieldPoints());
+            default -> throw new IllegalArgumentException("Other methods are not supported");
+        };
     }
 
     public double getYield(final double maturity) {
-        return splineInterpolation.getFunctionValue(maturity);
-    }
-
-    public double[] getMaturities() {
-        return yieldRefData.getMaturities();
-    }
-
-    public double[] getYields() {
-        return yieldRefData.getYields();
-    }
-
-    public List<CartesianPoint2d> getYieldPoints() {
-        return yieldPoints;
+        return yieldFunction.getFunctionValue(maturity);
     }
 
     public double getStartBoundaryMaturity() {
-        return splineInterpolation.getStartBoundaryX();
+        return yieldFunction.getStartBoundaryX();
     }
 
     public double getStartBoundaryYield() {
-        return splineInterpolation.getStartBoundaryY();
+        return yieldFunction.getStartBoundaryY();
     }
 
     public double getEndBoundaryMaturity() {
-        return splineInterpolation.getEndBoundaryX();
+        return yieldFunction.getEndBoundaryX();
     }
 
     public double getEndBoundaryYield() {
-        return splineInterpolation.getEndBoundaryY();
+        return yieldFunction.getEndBoundaryY();
     }
 }

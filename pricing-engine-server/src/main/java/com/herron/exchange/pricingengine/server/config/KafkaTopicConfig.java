@@ -10,13 +10,18 @@ import org.springframework.kafka.config.TopicBuilder;
 @Configuration
 public class KafkaTopicConfig {
 
-    @Value("${kafka.topic.previous-settlement-price-data.nr-of-partitions:1}")
-    public int nrOfPartitions;
-
     @Bean
-    public NewTopic bitstampMarketDataTopic() {
+    public NewTopic previousSettlementPriceTopic(@Value("${kafka.topic.previous-settlement-price-data.nr-of-partitions:1}") int nrOfPartitions) {
         return TopicBuilder
                 .name(KafkaTopicEnum.PREVIOUS_SETTLEMENT_PRICE_DATA.getTopicName())
+                .partitions(nrOfPartitions)
+                .build();
+    }
+
+    @Bean
+    public NewTopic realTimePriceTopic(@Value("${kafka.topic.real-time-prices.nr-of-partitions:1}") int nrOfPartitions) {
+        return TopicBuilder
+                .name(KafkaTopicEnum.REAL_TIME_PRICES.getTopicName())
                 .partitions(nrOfPartitions)
                 .build();
     }

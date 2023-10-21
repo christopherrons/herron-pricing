@@ -1,7 +1,7 @@
 package com.herron.exchange.pricingengine.server.curves;
 
 
-import com.herron.exchange.common.api.common.math.api.CartesianPoint2d;
+import com.herron.exchange.common.api.common.api.math.CartesianPoint2d;
 
 public record YieldPoint(double maturity, double yieldInDecimalForm) implements CartesianPoint2d {
 

@@ -1,4 +1,4 @@
-package com.herron.exchange.pricingengine.server.theoretical.fixedincome.bonds;
+package com.herron.exchange.pricingengine.server.price.fixedincome.bonds;
 
 import com.herron.exchange.common.api.common.api.referencedata.exchange.BusinessCalendar;
 import com.herron.exchange.common.api.common.api.referencedata.exchange.Market;
@@ -6,12 +6,14 @@ import com.herron.exchange.common.api.common.api.referencedata.exchange.Product;
 import com.herron.exchange.common.api.common.api.referencedata.instruments.BondInstrument;
 import com.herron.exchange.common.api.common.enums.CompoundingMethodEnum;
 import com.herron.exchange.common.api.common.enums.DayCountConvetionEnum;
+import com.herron.exchange.common.api.common.enums.InterpolationMethod;
 import com.herron.exchange.common.api.common.messages.common.DefaultBusinessCalendar;
 import com.herron.exchange.common.api.common.messages.refdata.ImmutableDefaultBondInstrument;
 import com.herron.exchange.common.api.common.messages.refdata.ImmutableDefaultMarket;
 import com.herron.exchange.common.api.common.messages.refdata.ImmutableDefaultProduct;
 import com.herron.exchange.pricingengine.server.curves.YieldCurve;
-import com.herron.exchange.pricingengine.server.curves.YieldRefData;
+import com.herron.exchange.pricingengine.server.curves.YieldCurveModelParameters;
+import com.herron.exchange.pricingengine.server.price.models.fixedincome.bonds.BondDiscountingPriceModel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -227,17 +229,25 @@ class BondDiscountingPriceModelTest {
 
     private YieldCurve createTestCurve() {
         LocalDate startDate = LocalDate.parse("2019-01-01");
+        var dayCountConvention = DayCountConvetionEnum.ACT365;
         List<LocalDate> maturityDates = new ArrayList<>();
-        maturityDates.add(startDate.plusDays((long) YieldRefData.DAYS_PER_YEAR));
-        maturityDates.add(startDate.plusDays((long) YieldRefData.DAYS_PER_YEAR * 2));
-        maturityDates.add(startDate.plusDays((long) YieldRefData.DAYS_PER_YEAR * 3));
-        maturityDates.add(startDate.plusDays((long) YieldRefData.DAYS_PER_YEAR * 4));
-        maturityDates.add(startDate.plusDays((long) YieldRefData.DAYS_PER_YEAR * 5));
-        maturityDates.add(startDate.plusDays((long) YieldRefData.DAYS_PER_YEAR * 10));
-        maturityDates.add(startDate.plusDays((long) YieldRefData.DAYS_PER_YEAR * 20));
-        maturityDates.add(startDate.plusDays((long) YieldRefData.DAYS_PER_YEAR * 30));
-        maturityDates.add(startDate.plusDays((long) YieldRefData.DAYS_PER_YEAR * 50));
+        maturityDates.add(startDate.plusDays((long) dayCountConvention.getDaysPerYear()));
+        maturityDates.add(startDate.plusDays((long) dayCountConvention.getDaysPerYear() * 2));
+        maturityDates.add(startDate.plusDays((long) dayCountConvention.getDaysPerYear() * 3));
+        maturityDates.add(startDate.plusDays((long) dayCountConvention.getDaysPerYear() * 4));
+        maturityDates.add(startDate.plusDays((long) dayCountConvention.getDaysPerYear() * 5));
+        maturityDates.add(startDate.plusDays((long) dayCountConvention.getDaysPerYear() * 10));
+        maturityDates.add(startDate.plusDays((long) dayCountConvention.getDaysPerYear() * 20));
+        maturityDates.add(startDate.plusDays((long) dayCountConvention.getDaysPerYear() * 30));
+        maturityDates.add(startDate.plusDays((long) dayCountConvention.getDaysPerYear() * 50));
         double[] yields = new double[]{0.01, 0.015, 0.02, 0.03, 0.035, 0.035, 0.04, 0.04, 0.045};
-        return new YieldCurve(new YieldRefData(LocalDate.parse("2019-01-01"), maturityDates, yields));
+        var parameters = YieldCurveModelParameters.create(dayCountConvention,
+                InterpolationMethod.CUBIC_SPLINE,
+                LocalDate.parse("2019-01-01"),
+                maturityDates.get(0),
+                maturityDates.toArray(new LocalDate[0]),
+                yields
+        );
+        return YieldCurve.create("id", parameters);
     }
 }

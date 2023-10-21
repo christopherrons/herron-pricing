@@ -1,5 +1,7 @@
 package com.herron.exchange.pricingengine.server.curves;
 
+import com.herron.exchange.common.api.common.enums.DayCountConvetionEnum;
+import com.herron.exchange.common.api.common.enums.InterpolationMethod;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
@@ -14,14 +16,22 @@ class YieldCurveTest {
     @Test
     void testYieldCurve5Points() {
         LocalDate startDate = LocalDate.parse("2000-01-01");
+        var dayCountConvention = DayCountConvetionEnum.ACT365;
         List<LocalDate> maturityDates = new ArrayList<>();
-        maturityDates.add(startDate.plusDays((long) YieldRefData.DAYS_PER_YEAR));
-        maturityDates.add(startDate.plusDays((long) YieldRefData.DAYS_PER_YEAR * 2));
-        maturityDates.add(startDate.plusDays((long) YieldRefData.DAYS_PER_YEAR * 3));
-        maturityDates.add(startDate.plusDays((long) YieldRefData.DAYS_PER_YEAR * 4));
-        maturityDates.add(startDate.plusDays((long) YieldRefData.DAYS_PER_YEAR * 5));
+        maturityDates.add(startDate.plusDays((long) dayCountConvention.getDaysPerYear()));
+        maturityDates.add(startDate.plusDays((long) dayCountConvention.getDaysPerYear() * 2));
+        maturityDates.add(startDate.plusDays((long) dayCountConvention.getDaysPerYear() * 3));
+        maturityDates.add(startDate.plusDays((long) dayCountConvention.getDaysPerYear() * 4));
+        maturityDates.add(startDate.plusDays((long) dayCountConvention.getDaysPerYear() * 5));
         double[] yields = new double[]{1, 5, 4, 3, 2};
-        YieldCurve curve = new YieldCurve(new YieldRefData(LocalDate.parse("2000-01-01"), maturityDates, yields));
+        var parameters = YieldCurveModelParameters.create(dayCountConvention,
+                InterpolationMethod.CUBIC_SPLINE,
+                LocalDate.parse("2000-01-01"),
+                maturityDates.get(0),
+                maturityDates.toArray(new LocalDate[0]),
+                yields
+        );
+        YieldCurve curve = YieldCurve.create("id", parameters);
         for (int i = 0; i < 10000; i++) {
             double x = ThreadLocalRandom.current().nextDouble(1, 3);
             assertDouble(YieldCurveTestUtils.getFunctionValue5Points(x), curve.getYield(x), 0.0000001);

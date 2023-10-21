@@ -1,7 +1,7 @@
-package com.herron.exchange.pricingengine.server.theoretical.fixedincome.bonds;
+package com.herron.exchange.pricingengine.server.price.models.fixedincome.bonds;
 
 import com.herron.exchange.common.api.common.api.referencedata.instruments.BondInstrument;
-import com.herron.exchange.pricingengine.server.theoretical.fixedincome.bonds.model.CouponPeriod;
+import com.herron.exchange.pricingengine.server.price.models.fixedincome.bonds.model.CouponPeriod;
 
 import java.util.ArrayList;
 import java.util.Comparator;

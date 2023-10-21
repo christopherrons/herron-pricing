@@ -1,4 +1,4 @@
-package com.herron.exchange.pricingengine.server.marketdata;
+package com.herron.exchange.pricingengine.server.marketdata.external;
 
 import com.herron.exchange.common.api.common.api.marketdata.MarketDataPrice;
 import com.herron.exchange.common.api.common.enums.PriceType;
@@ -6,9 +6,9 @@ import com.herron.exchange.common.api.common.messages.common.Price;
 import com.herron.exchange.common.api.common.messages.marketdata.ImmutableDefaultMarketDataPrice;
 import com.herron.exchange.common.api.common.messages.marketdata.ImmutableDefaultMarketDataPriceStaticKey;
 import com.herron.exchange.common.api.common.messages.marketdata.ImmutableDefaultTimeComponentKey;
-import com.herron.exchange.integrations.generator.eurex.EurexReferenceDataApiClient;
-import com.herron.exchange.integrations.generator.eurex.model.EurexContractData;
-import com.herron.exchange.integrations.generator.eurex.model.EurexProductData;
+import com.herron.exchange.integrations.eurex.EurexReferenceDataApiClient;
+import com.herron.exchange.integrations.eurex.model.EurexContractData;
+import com.herron.exchange.integrations.eurex.model.EurexProductData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

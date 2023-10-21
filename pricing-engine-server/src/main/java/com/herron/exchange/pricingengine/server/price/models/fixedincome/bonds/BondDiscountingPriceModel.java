@@ -1,18 +1,16 @@
-package com.herron.exchange.pricingengine.server.theoretical.fixedincome.bonds;
+package com.herron.exchange.pricingengine.server.price.models.fixedincome.bonds;
 
 import com.herron.exchange.common.api.common.api.referencedata.instruments.BondInstrument;
 import com.herron.exchange.common.api.common.enums.CompoundingMethodEnum;
 import com.herron.exchange.common.api.common.enums.DayCountConvetionEnum;
 import com.herron.exchange.pricingengine.server.curves.YieldCurve;
-import com.herron.exchange.pricingengine.server.theoretical.fixedincome.bonds.model.BondCalculationResult;
-import com.herron.exchange.pricingengine.server.theoretical.fixedincome.bonds.model.CouponPeriod;
+import com.herron.exchange.pricingengine.server.price.models.fixedincome.bonds.model.BondCalculationResult;
+import com.herron.exchange.pricingengine.server.price.models.fixedincome.bonds.model.CouponPeriod;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.function.DoubleUnaryOperator;
-
-import static com.herron.exchange.pricingengine.server.theoretical.fixedincome.bonds.CouponCalculationUtils.generateCouponPeriods;
 
 public class BondDiscountingPriceModel {
     private static final long DAYS_PER_YEAR = 365;
@@ -36,7 +34,7 @@ public class BondDiscountingPriceModel {
             now = bondInstrument.startDate();
         }
 
-        List<CouponPeriod> periods = generateCouponPeriods(bondInstrument);
+        List<CouponPeriod> periods = CouponCalculationUtils.generateCouponPeriods(bondInstrument);
         return calculateBondPrice(bondInstrument, yieldAtMaturityExtractor, now, periods);
     }
 
