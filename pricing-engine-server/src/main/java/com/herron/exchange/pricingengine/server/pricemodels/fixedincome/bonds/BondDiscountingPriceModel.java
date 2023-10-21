@@ -13,64 +13,70 @@ import java.util.List;
 import java.util.function.DoubleUnaryOperator;
 
 public class BondDiscountingPriceModel {
-    private static final long DAYS_PER_YEAR = 365;
 
-    public BondCalculationResult calculateBondPrice(BondInstrument instrument,
-                                                    double yieldPerYear,
-                                                    LocalDate now) {
-        return calculateBondPrice(instrument, timeToMaturity -> yieldPerYear, now);
+    private BondCalculationResult calculateBondPrice(BondInstrument instrument,
+                                                     LocalDate valuationTime) {
+        return instrument.priceModelParameters().calculateWithCurve() ?
+                calculateBondPrice(instrument) :
+                calculateBondPrice(instrument, instrument.priceModelParameters().constantYield(), valuationTime);
     }
 
-    public BondCalculationResult calculateBondPrice(BondInstrument instrument,
-                                                    YieldCurve yieldCurve,
-                                                    LocalDate now) {
-        return calculateBondPrice(instrument, yieldCurve::getYield, now);
+    private BondCalculationResult calculateBondPrice(BondInstrument instrument,
+                                                     double yieldPerYear,
+                                                     LocalDate valuationTime) {
+        return calculateBondPrice(instrument, timeToMaturity -> yieldPerYear, valuationTime);
+    }
+
+    private BondCalculationResult calculateBondPrice(BondInstrument instrument,
+                                                     YieldCurve yieldCurve,
+                                                     LocalDate valuationTime) {
+        return calculateBondPrice(instrument, yieldCurve::getYield, valuationTime);
     }
 
     private BondCalculationResult calculateBondPrice(BondInstrument bondInstrument,
                                                      DoubleUnaryOperator yieldAtMaturityExtractor,
-                                                     LocalDate now) {
-        if (now.isBefore(bondInstrument.startDate())) {
-            now = bondInstrument.startDate();
+                                                     LocalDate valuationTime) {
+        if (valuationTime.isBefore(bondInstrument.startDate())) {
+            valuationTime = bondInstrument.startDate();
         }
 
         List<CouponPeriod> periods = CouponCalculationUtils.generateCouponPeriods(bondInstrument);
-        return calculateBondPrice(bondInstrument, yieldAtMaturityExtractor, now, periods);
+        return calculateBondPrice(bondInstrument, yieldAtMaturityExtractor, valuationTime, periods);
     }
 
     private BondCalculationResult calculateBondPrice(BondInstrument bondInstrument,
                                                      DoubleUnaryOperator yieldAtMaturityExtractor,
-                                                     LocalDate now,
+                                                     LocalDate valuationTime,
                                                      List<CouponPeriod> periods) {
         double presentValue = 0;
         double accruedInterest = 0;
         LocalDate maturityDate = bondInstrument.maturityDate();
         for (CouponPeriod period : periods) {
-            if (period.endDate().isBefore(now)) {
+            if (period.endDate().isBefore(valuationTime)) {
                 continue;
             }
 
-            if (period.isInPeriod(now)) {
-                accruedInterest += calculateAccruedInterest(bondInstrument.couponRate(), period.startDate(), now, bondInstrument.dayCountConvention());
+            if (period.isInPeriod(valuationTime)) {
+                accruedInterest += calculateAccruedInterest(bondInstrument.couponRate(), period.startDate(), valuationTime, bondInstrument.dayCountConvention());
             }
 
             presentValue += period.couponRate() / calculateDiscountFactor(bondInstrument, period.startDate(), maturityDate, yieldAtMaturityExtractor);
         }
 
-        var discountedFaceValue = 1 / calculateDiscountFactor(bondInstrument, now, maturityDate, yieldAtMaturityExtractor);
+        var discountedFaceValue = 1 / calculateDiscountFactor(bondInstrument, valuationTime, maturityDate, yieldAtMaturityExtractor);
         presentValue += discountedFaceValue;
 
         return new BondCalculationResult(presentValue * bondInstrument.nominalValue(), accruedInterest * bondInstrument.nominalValue());
     }
 
-    private double calculateDiscountFactor(BondInstrument bondInstrument, LocalDate now, LocalDate maturityDate, DoubleUnaryOperator yieldAtMaturityExtractor) {
-        var timeToMaturity = ChronoUnit.YEARS.between(now, maturityDate);
+    private double calculateDiscountFactor(BondInstrument bondInstrument, LocalDate valuationTime, LocalDate maturityDate, DoubleUnaryOperator yieldAtMaturityExtractor) {
+        var timeToMaturity = ChronoUnit.YEARS.between(valuationTime, maturityDate);
         double yieldAtTimeToMaturity = yieldAtMaturityExtractor.applyAsDouble(timeToMaturity);
         return calculateDiscountFactor(bondInstrument.compoundingMethod(), yieldAtTimeToMaturity, timeToMaturity, bondInstrument.couponAnnualFrequency());
     }
 
-    private double calculateAccruedInterest(double annualCouponRate, LocalDate startDate, LocalDate now, DayCountConvetionEnum dayCountConvetion) {
-        return annualCouponRate * dayCountConvetion.calculateDayCountFraction(startDate, now);
+    private double calculateAccruedInterest(double annualCouponRate, LocalDate startDate, LocalDate valuationTime, DayCountConvetionEnum dayCountConvetion) {
+        return annualCouponRate * dayCountConvetion.calculateDayCountFraction(startDate, valuationTime);
     }
 
     private double calculateDiscountFactor(CompoundingMethodEnum compoundingMethodEnum,

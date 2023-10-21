@@ -8,6 +8,7 @@ import com.herron.exchange.common.api.common.enums.CompoundingMethodEnum;
 import com.herron.exchange.common.api.common.enums.DayCountConvetionEnum;
 import com.herron.exchange.common.api.common.enums.InterpolationMethod;
 import com.herron.exchange.common.api.common.messages.common.DefaultBusinessCalendar;
+import com.herron.exchange.common.api.common.messages.refdata.ImmutableBondDiscountPriceModelParameters;
 import com.herron.exchange.common.api.common.messages.refdata.ImmutableDefaultBondInstrument;
 import com.herron.exchange.common.api.common.messages.refdata.ImmutableDefaultMarket;
 import com.herron.exchange.common.api.common.messages.refdata.ImmutableDefaultProduct;
@@ -34,6 +35,7 @@ class BondDiscountingPriceModelTest {
     @Test
     void test_zero_yield_compounding_interest_with_accrued_interest() {
         var bond = buildInstrument(
+                false,
                 2,
                 LocalDate.of(2023, 1, 1),
                 LocalDate.of(2021, 1, 1),
@@ -52,6 +54,7 @@ class BondDiscountingPriceModelTest {
     @Test
     void test_constant_yield_compounding_interest_with_accrued_interest() {
         var bond = buildInstrument(
+                false,
                 2,
                 LocalDate.of(2031, 1, 1),
                 LocalDate.of(2011, 1, 1),
@@ -70,6 +73,7 @@ class BondDiscountingPriceModelTest {
     @Test
     void test_zero_coupon_pricing() {
         var bond = buildInstrument(
+                false,
                 1,
                 LocalDate.of(2040, 1, 1),
                 LocalDate.of(2020, 1, 1),
@@ -90,6 +94,7 @@ class BondDiscountingPriceModelTest {
     @Test
     void test_constant_yield_compounding_interest_pricing() {
         var bond = buildInstrument(
+                false,
                 2,
                 LocalDate.of(2023, 1, 1),
                 LocalDate.of(2021, 1, 1),
@@ -109,6 +114,7 @@ class BondDiscountingPriceModelTest {
     @Test
     void test_constant_yield_compounding_interest_pricing_2() {
         var bond = buildInstrument(
+                false,
                 1,
                 LocalDate.of(2040, 1, 1),
                 LocalDate.of(2020, 1, 1),
@@ -129,6 +135,7 @@ class BondDiscountingPriceModelTest {
     @Test
     void test_constant_yield_compounding_interest_pricing_3() {
         var bond = buildInstrument(
+                false,
                 2,
                 LocalDate.of(2040, 1, 1),
                 LocalDate.of(2020, 1, 1),
@@ -149,6 +156,7 @@ class BondDiscountingPriceModelTest {
     @Test
     void test_constant_yield_compounding_interest__30360_pricing_4() {
         var bond = buildInstrument(
+                false,
                 2,
                 LocalDate.of(2028, 10, 1),
                 LocalDate.of(2023, 1, 1),
@@ -169,6 +177,7 @@ class BondDiscountingPriceModelTest {
     @Test
     void test_bond_price_with_curve() {
         var bond = buildInstrument(
+                true,
                 2,
                 LocalDate.of(2040, 1, 1),
                 LocalDate.of(2020, 1, 1),
@@ -203,7 +212,9 @@ class BondDiscountingPriceModelTest {
                 .build();
     }
 
-    private BondInstrument buildInstrument(int frequency,
+    private BondInstrument buildInstrument(boolean useCurve,
+                                           double yieldPerYear,
+                                           int frequency,
                                            LocalDate maturityData,
                                            LocalDate startDate,
                                            double nominalValue,
@@ -216,10 +227,15 @@ class BondDiscountingPriceModelTest {
                 .couponAnnualFrequency(frequency)
                 .maturityDate(maturityData)
                 .startDate(startDate)
-                .compoundingMethod(compoundingMethodEnum)
                 .nominalValue(nominalValue)
                 .couponRate(couponRate)
-                .dayCountConvention(dayCountConvetionEnum)
+                .priceModelParameters(ImmutableBondDiscountPriceModelParameters.builder().dayCountConvention(dayCountConvetionEnum)
+                        .compoundingMethod(compoundingMethodEnum)
+                        .calculateWithCurve(useCurve)
+                        .constantYield(yieldPerYear)
+                        .yieldCurveId("id")
+                        .build()
+                )
                 .product(product)
                 .firstTradingDate(LocalDate.MIN)
                 .lastTradingDate(LocalDate.MAX)
