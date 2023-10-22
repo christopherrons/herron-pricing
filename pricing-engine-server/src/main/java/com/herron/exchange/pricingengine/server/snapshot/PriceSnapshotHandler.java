@@ -2,17 +2,18 @@ package com.herron.exchange.pricingengine.server.snapshot;
 
 
 import com.herron.exchange.common.api.common.api.Event;
-import com.herron.exchange.common.api.common.api.marketdata.MarketDataPrice;
 import com.herron.exchange.common.api.common.api.referencedata.instruments.DerivativeInstrument;
 import com.herron.exchange.common.api.common.api.referencedata.instruments.Instrument;
-import com.herron.exchange.common.api.common.api.trading.orders.PriceQuote;
-import com.herron.exchange.common.api.common.api.trading.trades.Trade;
 import com.herron.exchange.common.api.common.cache.ReferenceDataCache;
 import com.herron.exchange.common.api.common.comparator.EventComparator;
 import com.herron.exchange.common.api.common.enums.KafkaTopicEnum;
 import com.herron.exchange.common.api.common.kafka.KafkaBroadcastHandler;
 import com.herron.exchange.common.api.common.messages.common.PartitionKey;
+import com.herron.exchange.common.api.common.messages.marketdata.entries.MarketDataPrice;
+import com.herron.exchange.common.api.common.messages.trading.PriceQuote;
+import com.herron.exchange.common.api.common.messages.trading.Trade;
 import com.herron.exchange.common.api.common.wrappers.ThreadWrapper;
+import com.herron.exchange.pricingengine.server.pricemodels.TheoreticalPriceCalculator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,9 +35,13 @@ public class PriceSnapshotHandler {
     private final AtomicBoolean isMatching = new AtomicBoolean(false);
     private final Thread pricingThread;
     private final KafkaBroadcastHandler broadcastHandler;
+    private final TheoreticalPriceCalculator priceCalculator;
 
-    public PriceSnapshotHandler(String id, KafkaBroadcastHandler broadcastHandler) {
+    public PriceSnapshotHandler(String id,
+                                KafkaBroadcastHandler broadcastHandler,
+                                TheoreticalPriceCalculator priceCalculator) {
         this.broadcastHandler = broadcastHandler;
+        this.priceCalculator = priceCalculator;
         this.pricingThread = new Thread(this::broadcastPrices, id);
         this.queueLoggerThread = newScheduledThreadPool(1, new ThreadWrapper(id));
     }
@@ -55,14 +60,6 @@ public class PriceSnapshotHandler {
         LOGGER.info("Stopping snapshot handler.");
         isMatching.set(false);
         queueLoggerThread.shutdown();
-    }
-
-    public void handleTrade(Trade trade) {
-        eventQueue.add(trade);
-    }
-
-    public void handlePriceQuote(PriceQuote priceQuote) {
-        eventQueue.add(priceQuote);
     }
 
     private void broadcastPrices() {
@@ -98,7 +95,6 @@ public class PriceSnapshotHandler {
             var marketPrice = calculator.updateAndGet(trade);
             broadcastPrice(marketPrice);
 
-
         } else if (event instanceof PriceQuote priceQuote) {
             var instrument = ReferenceDataCache.getCache().getOrderbookData(priceQuote.orderbookId()).instrument();
             var calculator = getOrCreateCalculator(instrument);
@@ -118,6 +114,6 @@ public class PriceSnapshotHandler {
         if (instrument instanceof DerivativeInstrument derivativeInstrument) {
             underlyingIdToDerivative.computeIfAbsent(derivativeInstrument.underlyingInstrumentId(), k -> new ArrayList<>()).add(derivativeInstrument);
         }
-        return instrumentToPriceSnapshotCalculator.computeIfAbsent(instrument, PriceSnapshotCalculator::new);
+        return instrumentToPriceSnapshotCalculator.computeIfAbsent(instrument, k -> new PriceSnapshotCalculator(instrument, priceCalculator));
     }
 }

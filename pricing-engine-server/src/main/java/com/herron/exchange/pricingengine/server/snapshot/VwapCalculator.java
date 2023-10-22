@@ -1,8 +1,8 @@
 package com.herron.exchange.pricingengine.server.snapshot;
 
-import com.herron.exchange.common.api.common.api.trading.trades.Trade;
 import com.herron.exchange.common.api.common.messages.common.Price;
 import com.herron.exchange.common.api.common.messages.common.Volume;
+import com.herron.exchange.common.api.common.messages.trading.Trade;
 
 public class VwapCalculator {
 

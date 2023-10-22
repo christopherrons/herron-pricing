@@ -2,11 +2,11 @@ package com.herron.exchange.pricingengine.server.consumers;
 
 import com.herron.exchange.common.api.common.api.Message;
 import com.herron.exchange.common.api.common.api.MessageFactory;
-import com.herron.exchange.common.api.common.api.broadcasts.DataStreamState;
-import com.herron.exchange.common.api.common.api.trading.orders.PriceQuote;
 import com.herron.exchange.common.api.common.enums.KafkaTopicEnum;
 import com.herron.exchange.common.api.common.kafka.KafkaDataConsumer;
+import com.herron.exchange.common.api.common.messages.common.DataStreamState;
 import com.herron.exchange.common.api.common.messages.common.PartitionKey;
+import com.herron.exchange.common.api.common.messages.trading.PriceQuote;
 import com.herron.exchange.pricingengine.server.PricingEngine;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;

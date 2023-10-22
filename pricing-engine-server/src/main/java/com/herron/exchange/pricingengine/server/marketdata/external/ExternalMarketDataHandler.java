@@ -1,6 +1,6 @@
 package com.herron.exchange.pricingengine.server.marketdata.external;
 
-import com.herron.exchange.common.api.common.api.marketdata.MarketDataPrice;
+import com.herron.exchange.common.api.common.messages.marketdata.entries.MarketDataPrice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

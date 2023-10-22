@@ -1,11 +1,11 @@
 package com.herron.exchange.pricingengine.server.marketdata.external;
 
-import com.herron.exchange.common.api.common.api.marketdata.MarketDataPrice;
 import com.herron.exchange.common.api.common.enums.PriceType;
 import com.herron.exchange.common.api.common.messages.common.Price;
-import com.herron.exchange.common.api.common.messages.marketdata.ImmutableDefaultMarketDataPrice;
-import com.herron.exchange.common.api.common.messages.marketdata.ImmutableDefaultMarketDataPriceStaticKey;
 import com.herron.exchange.common.api.common.messages.marketdata.ImmutableDefaultTimeComponentKey;
+import com.herron.exchange.common.api.common.messages.marketdata.entries.ImmutableMarketDataPrice;
+import com.herron.exchange.common.api.common.messages.marketdata.entries.MarketDataPrice;
+import com.herron.exchange.common.api.common.messages.marketdata.statickeys.ImmutableMarketDataPriceStaticKey;
 import com.herron.exchange.integrations.eurex.EurexReferenceDataApiClient;
 import com.herron.exchange.integrations.eurex.model.EurexContractData;
 import com.herron.exchange.integrations.eurex.model.EurexProductData;
@@ -43,9 +43,9 @@ public class EurexPreviousDaySettlementHandler {
             var previousDate = LocalDateTime.of(LocalDate.parse(contractData.data().contracts().date(), DATE_TIME_FORMATTER), LocalTime.MIDNIGHT).minusDays(1);
             for (var contract : contractData.data().contracts().data()) {
                 previousSettlementPrice.add(
-                        ImmutableDefaultMarketDataPrice.builder()
+                        ImmutableMarketDataPrice.builder()
                                 .priceType(PriceType.SETTLEMENT)
-                                .staticKey(ImmutableDefaultMarketDataPriceStaticKey.builder().instrumentId(contract.isin()).build())
+                                .staticKey(ImmutableMarketDataPriceStaticKey.builder().instrumentId(contract.isin()).build())
                                 .timeComponentKey(ImmutableDefaultTimeComponentKey.builder().timeOfEvent(previousDate).build())
                                 .price(Price.create(contract.previousDaySettlementPrice()))
                                 .build()

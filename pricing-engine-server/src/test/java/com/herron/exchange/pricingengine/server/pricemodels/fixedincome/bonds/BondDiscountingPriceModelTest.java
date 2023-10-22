@@ -36,6 +36,7 @@ class BondDiscountingPriceModelTest {
     void test_zero_yield_compounding_interest_with_accrued_interest() {
         var bond = buildInstrument(
                 false,
+                0,
                 2,
                 LocalDate.of(2023, 1, 1),
                 LocalDate.of(2021, 1, 1),
@@ -55,6 +56,7 @@ class BondDiscountingPriceModelTest {
     void test_constant_yield_compounding_interest_with_accrued_interest() {
         var bond = buildInstrument(
                 false,
+                0.04,
                 2,
                 LocalDate.of(2031, 1, 1),
                 LocalDate.of(2011, 1, 1),
@@ -74,6 +76,7 @@ class BondDiscountingPriceModelTest {
     void test_zero_coupon_pricing() {
         var bond = buildInstrument(
                 false,
+                0.05,
                 1,
                 LocalDate.of(2040, 1, 1),
                 LocalDate.of(2020, 1, 1),
@@ -95,6 +98,7 @@ class BondDiscountingPriceModelTest {
     void test_constant_yield_compounding_interest_pricing() {
         var bond = buildInstrument(
                 false,
+                0.03,
                 2,
                 LocalDate.of(2023, 1, 1),
                 LocalDate.of(2021, 1, 1),
@@ -115,6 +119,7 @@ class BondDiscountingPriceModelTest {
     void test_constant_yield_compounding_interest_pricing_2() {
         var bond = buildInstrument(
                 false,
+                0.04,
                 1,
                 LocalDate.of(2040, 1, 1),
                 LocalDate.of(2020, 1, 1),
@@ -136,6 +141,7 @@ class BondDiscountingPriceModelTest {
     void test_constant_yield_compounding_interest_pricing_3() {
         var bond = buildInstrument(
                 false,
+                0.04,
                 2,
                 LocalDate.of(2040, 1, 1),
                 LocalDate.of(2020, 1, 1),
@@ -157,6 +163,7 @@ class BondDiscountingPriceModelTest {
     void test_constant_yield_compounding_interest__30360_pricing_4() {
         var bond = buildInstrument(
                 false,
+                0.1,
                 2,
                 LocalDate.of(2028, 10, 1),
                 LocalDate.of(2023, 1, 1),
@@ -178,6 +185,7 @@ class BondDiscountingPriceModelTest {
     void test_bond_price_with_curve() {
         var bond = buildInstrument(
                 true,
+                1,
                 2,
                 LocalDate.of(2040, 1, 1),
                 LocalDate.of(2020, 1, 1),
