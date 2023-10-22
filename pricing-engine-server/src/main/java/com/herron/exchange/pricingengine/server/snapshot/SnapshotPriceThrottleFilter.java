@@ -22,15 +22,15 @@ public class SnapshotPriceThrottleFilter {
     }
 
     private boolean accept(PriceSnapshotCalculator.TimeAndPrice timeAndPrice) {
-        if (timeAndPrice == null) {
+        if (timeAndPrice == null || !timeAndPrice.isValid()) {
             return false;
         }
 
-        if (previousTimeAndPrice == null || !previousTimeAndPrice.isValid()) {
+        if (previousTimeAndPrice == null) {
             return true;
         }
 
-        return timeAndPrice.timeOfPriceMs() - previousTimeAndPrice.timeOfPriceMs() >= minTimeBeforeUpdate.getSeconds() / 1000 &&
+        return timeAndPrice.timeOfPriceMs() - previousTimeAndPrice.timeOfPriceMs() >= minTimeBeforeUpdate.getSeconds() * 1000 &&
                 previousTimeAndPrice.price().percentageChange(timeAndPrice.price()) >= minPriceChange;
     }
 }

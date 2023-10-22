@@ -11,7 +11,7 @@ public class VwapCalculator {
 
     public Price updateAndGetVwap(Trade trade) {
         totalVolume = totalVolume.add(trade.volume());
-        vwp = vwp.add(trade.price().add(trade.volume().getValue()));
+        vwp = vwp.add(trade.price().multiply(trade.volume().getValue()));
         return vwp.divide(totalVolume.getValue());
     }
 
