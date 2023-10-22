@@ -13,21 +13,25 @@ import com.herron.exchange.common.api.common.messages.marketdata.response.Market
 import com.herron.exchange.common.api.common.messages.marketdata.statickeys.ImmutableMarketDataYieldCurveStaticKey;
 import com.herron.exchange.common.api.common.messages.pricing.ImmutableBondDiscountPriceModelResult;
 import com.herron.exchange.common.api.common.messages.pricing.ImmutableFailedPriceModelResult;
-import com.herron.exchange.pricingengine.server.marketdata.MarketDataHandler;
+import com.herron.exchange.pricingengine.server.marketdata.MarketDataService;
 import com.herron.exchange.pricingengine.server.pricemodels.fixedincome.bonds.model.CouponPeriod;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.function.DoubleUnaryOperator;
 
+import static com.herron.exchange.common.api.common.enums.EventType.SYSTEM;
+import static com.herron.exchange.common.api.common.enums.Status.OK;
 import static java.time.temporal.ChronoUnit.YEARS;
 
 public class BondDiscountingPriceModel {
 
-    private final MarketDataHandler marketDataHandler;
+    private final MarketDataService marketDataService;
 
-    public BondDiscountingPriceModel(MarketDataHandler marketDataHandler) {
-        this.marketDataHandler = marketDataHandler;
+    public BondDiscountingPriceModel(MarketDataService marketDataService) {
+        this.marketDataService = marketDataService;
     }
 
     public PriceModelResult calculateBondPrice(BondInstrument instrument, LocalDate valuationTime) {
@@ -46,10 +50,10 @@ public class BondDiscountingPriceModel {
         var request = ImmutableMarketDataYieldCurveRequest.builder()
                 .staticKey(ImmutableMarketDataYieldCurveStaticKey.builder().curveId(curveId).build())
                 .timeFilter(MarketDataRequestTimeFilter.LATEST)
-                .timeComponentKey(ImmutableDefaultTimeComponentKey.builder().build())
+                .timeComponentKey(ImmutableDefaultTimeComponentKey.builder().timeOfEvent(LocalDateTime.now()).build())
                 .build();
 
-        MarketDataYieldCurveResponse response = marketDataHandler.getEntry(request);
+        MarketDataYieldCurveResponse response = marketDataService.getEntry(request);
         if (response.status() == Status.ERROR || response.yieldCurveEntry() == null) {
             return ImmutableFailedPriceModelResult.builder().failReason("Market data error: " + response.error()).build();
         }
@@ -104,6 +108,9 @@ public class BondDiscountingPriceModel {
                 .accruedInterest(accruedInterestAmount)
                 .cleanPrice(Price.create(presentValueAmount))
                 .price(Price.create(presentValueAmount + accruedInterestAmount))
+                .eventType(SYSTEM)
+                .timeOfEventMs(Instant.now().toEpochMilli())
+                .status(OK)
                 .build();
     }
 

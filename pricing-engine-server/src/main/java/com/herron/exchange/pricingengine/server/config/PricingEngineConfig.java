@@ -7,7 +7,7 @@ import com.herron.exchange.integrations.eurex.EurexReferenceDataApiClient;
 import com.herron.exchange.integrations.eurex.model.EurexApiClientProperties;
 import com.herron.exchange.pricingengine.server.PricingEngineBootloader;
 import com.herron.exchange.pricingengine.server.consumers.ReferenceDataConsumer;
-import com.herron.exchange.pricingengine.server.marketdata.MarketDataHandler;
+import com.herron.exchange.pricingengine.server.marketdata.MarketDataService;
 import com.herron.exchange.pricingengine.server.marketdata.external.EurexPreviousDaySettlementHandler;
 import com.herron.exchange.pricingengine.server.marketdata.external.ExternalMarketDataHandler;
 import org.springframework.beans.factory.annotation.Value;
@@ -53,8 +53,8 @@ public class PricingEngineConfig {
     }
 
     @Bean
-    public MarketDataHandler marketDataHandler(ExternalMarketDataHandler externalMarketDataHandler) {
-        return new MarketDataHandler(externalMarketDataHandler);
+    public MarketDataService marketDataHandler(ExternalMarketDataHandler externalMarketDataHandler) {
+        return new MarketDataService(externalMarketDataHandler);
     }
 
     @Bean
@@ -68,7 +68,7 @@ public class PricingEngineConfig {
     }
 
     @Bean(initMethod = "init")
-    public PricingEngineBootloader pricingEngineBootloader(KafkaBroadcastHandler kafkaBroadcastHandler, MarketDataHandler marketDataHandler) {
-        return new PricingEngineBootloader(marketDataHandler, kafkaBroadcastHandler);
+    public PricingEngineBootloader pricingEngineBootloader(KafkaBroadcastHandler kafkaBroadcastHandler, MarketDataService marketDataService) {
+        return new PricingEngineBootloader(marketDataService, kafkaBroadcastHandler);
     }
 }

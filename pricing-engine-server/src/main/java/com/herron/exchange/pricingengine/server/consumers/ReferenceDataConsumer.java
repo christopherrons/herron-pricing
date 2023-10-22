@@ -10,6 +10,7 @@ import com.herron.exchange.common.api.common.kafka.KafkaDataConsumer;
 import com.herron.exchange.common.api.common.messages.common.DataStreamState;
 import com.herron.exchange.common.api.common.messages.common.PartitionKey;
 import com.herron.exchange.common.api.common.messages.refdata.Market;
+import com.herron.exchange.common.api.common.messages.refdata.Product;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

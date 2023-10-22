@@ -71,7 +71,7 @@ public class PriceSnapshotCalculator {
     }
 
     private TimeAndPrice selectPrice() {
-        for (var priceType : PriceType.values()) { //FIXME: Take it from the price model
+        for (var priceType : instrument.priceModelParameters().intradayPricePriority()) {
             var timeAndPrice = getPrice(priceType);
             if (timeAndPrice != null && timeAndPrice.isValid()) {
                 return timeAndPrice;
