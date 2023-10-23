@@ -17,7 +17,6 @@ import org.springframework.kafka.annotation.TopicPartition;
 
 
 public class TopOfBookConsumer extends KafkaDataConsumer {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TopOfBookConsumer.class);
     private static final PartitionKey PARTITION_ZERO_KEY = new PartitionKey(KafkaTopicEnum.TOP_OF_BOOK_QUOTE, 0);
     private final PricingEngine pricingEngine;
 
@@ -44,8 +43,8 @@ public class TopOfBookConsumer extends KafkaDataConsumer {
 
         } else if (message instanceof DataStreamState state) {
             switch (state.state()) {
-                case START -> LOGGER.info("Started consuming top of book.");
-                case DONE -> LOGGER.info("Done consuming {} top of book.", getTotalNumberOfEvents());
+                case START -> logger.info("Started consuming top of book.");
+                case DONE -> logger.info("Done consuming {} top of book.", getTotalNumberOfEvents());
             }
         }
     }

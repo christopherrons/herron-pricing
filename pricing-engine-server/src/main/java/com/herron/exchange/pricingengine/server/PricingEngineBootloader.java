@@ -26,10 +26,10 @@ public class PricingEngineBootloader {
     }
 
     private void run() {
-        broadCastPreviousDaySettlement();
+        broadcastPreviousDaySettlement();
     }
 
-    private void broadCastPreviousDaySettlement() {
+    private void broadcastPreviousDaySettlement() {
         marketDataService.getPreviousDaySettlementPrices()
                 .forEach(message -> kafkaBroadcastHandler.broadcastMessage(PREVIOUS_SETTLEMENT_PRICE_KEY, message));
         kafkaBroadcastHandler.endBroadCast(PREVIOUS_SETTLEMENT_PRICE_KEY);

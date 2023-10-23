@@ -110,7 +110,7 @@ public class PriceSnapshotHandler {
         broadcastHandler.broadcastMessage(REAL_TIME_PRICE_KEY, price);
     }
 
-    public PriceSnapshotCalculator getOrCreateCalculator(Instrument instrument) {
+    private PriceSnapshotCalculator getOrCreateCalculator(Instrument instrument) {
         if (instrument instanceof DerivativeInstrument derivativeInstrument) {
             underlyingIdToDerivative.computeIfAbsent(derivativeInstrument.underlyingInstrumentId(), k -> new ArrayList<>()).add(derivativeInstrument);
         }

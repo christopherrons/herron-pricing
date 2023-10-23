@@ -9,15 +9,12 @@ import com.herron.exchange.common.api.common.messages.common.PartitionKey;
 import com.herron.exchange.common.api.common.messages.trading.Trade;
 import com.herron.exchange.pricingengine.server.PricingEngine;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.PartitionOffset;
 import org.springframework.kafka.annotation.TopicPartition;
 
 
 public class TradeDataConsumer extends KafkaDataConsumer {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TradeDataConsumer.class);
     private static final PartitionKey PARTITION_ZERO_KEY = new PartitionKey(KafkaTopicEnum.TRADE_DATA, 0);
     private final PricingEngine pricingEngine;
 
@@ -44,8 +41,8 @@ public class TradeDataConsumer extends KafkaDataConsumer {
 
         } else if (message instanceof DataStreamState state) {
             switch (state.state()) {
-                case START -> LOGGER.info("Started consuming trade data.");
-                case DONE -> LOGGER.info("Done consuming {} trade data.", getTotalNumberOfEvents());
+                case START -> logger.info("Started consuming trade data.");
+                case DONE -> logger.info("Done consuming {} trade data.", getTotalNumberOfEvents());
             }
         }
     }
