@@ -14,8 +14,6 @@ import com.herron.exchange.pricingengine.server.PricingEngine;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-import static com.herron.exchange.common.api.common.enums.DataStreamEnum.DONE;
-
 
 public class TopOfBookConsumer extends DataConsumer implements KafkaMessageHandler {
     private final PricingEngine pricingEngine;
@@ -34,13 +32,6 @@ public class TopOfBookConsumer extends DataConsumer implements KafkaMessageHandl
     @Override
     public void consumerInit() {
         requests.forEach(consumerClient::subscribeToBroadcastTopic);
-    }
-
-    @Override
-    public void consumerComplete() {
-        logger.info("Done consuming top of book data.");
-        consumerStatus = DONE;
-        shutdown();
     }
 
     @Override

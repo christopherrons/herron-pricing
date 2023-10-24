@@ -33,7 +33,7 @@ public class PriceSnapshotHandler {
     private final BlockingQueue<Event> eventQueue = new PriorityBlockingQueue<>(50, new EventComparator<>());
     private final ScheduledExecutorService queueLoggerThread;
     private final AtomicBoolean isMatching = new AtomicBoolean(false);
-    private final Thread pricingThread;
+    private final ExecutorService service;
     private final KafkaBroadcastHandler broadcastHandler;
     private final TheoreticalPriceCalculator priceCalculator;
 
@@ -42,7 +42,7 @@ public class PriceSnapshotHandler {
                                 TheoreticalPriceCalculator priceCalculator) {
         this.broadcastHandler = broadcastHandler;
         this.priceCalculator = priceCalculator;
-        this.pricingThread = new Thread(this::broadcastPrices, id);
+        this.service = Executors.newSingleThreadExecutor(new ThreadWrapper(id));
         this.queueLoggerThread = newScheduledThreadPool(1, new ThreadWrapper(id));
     }
 
@@ -52,7 +52,7 @@ public class PriceSnapshotHandler {
 
     public void init() {
         isMatching.set(true);
-        pricingThread.start();
+        service.execute(this::broadcastPrices);
         queueLoggerThread.scheduleAtFixedRate(() -> LOGGER.info("Message Queue size: {}", eventQueue.size()), 0, 60, TimeUnit.SECONDS);
     }
 
@@ -63,7 +63,7 @@ public class PriceSnapshotHandler {
     }
 
     private void broadcastPrices() {
-        LOGGER.info("Starting pricing engine.");
+        LOGGER.info("Starting snapshot handler.");
         Event event;
         while (isMatching.get() || !eventQueue.isEmpty()) {
 
