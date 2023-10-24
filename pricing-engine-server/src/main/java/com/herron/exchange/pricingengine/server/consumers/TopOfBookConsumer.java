@@ -23,7 +23,7 @@ public class TopOfBookConsumer extends DataConsumer implements KafkaMessageHandl
     public TopOfBookConsumer(PricingEngine pricingEngine,
                              KafkaConsumerClient consumerClient,
                              List<KafkaSubscriptionDetails> subscriptionDetails) {
-        super("Top of Book", new CountDownLatch(subscriptionDetails.size()));
+        super("Top-of-Book", new CountDownLatch(subscriptionDetails.size()));
         this.pricingEngine = pricingEngine;
         this.consumerClient = consumerClient;
         this.requests = subscriptionDetails.stream().map(d -> new KafkaSubscriptionRequest(d, this)).toList();

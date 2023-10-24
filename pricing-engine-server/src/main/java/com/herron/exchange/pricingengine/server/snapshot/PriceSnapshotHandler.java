@@ -27,7 +27,7 @@ import static java.util.concurrent.Executors.newScheduledThreadPool;
 
 public class PriceSnapshotHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(PriceSnapshotHandler.class);
-    private static final PartitionKey REAL_TIME_PRICE_KEY = new PartitionKey(KafkaTopicEnum.REAL_TIME_PRICES, 0);
+    public static final PartitionKey REAL_TIME_PRICE_KEY = new PartitionKey(KafkaTopicEnum.REAL_TIME_PRICES, 0);
     private final Map<Instrument, PriceSnapshotCalculator> instrumentToPriceSnapshotCalculator = new ConcurrentHashMap<>();
     private final Map<String, List<DerivativeInstrument>> underlyingIdToDerivative = new ConcurrentHashMap<>();
     private final BlockingQueue<Event> eventQueue = new PriorityBlockingQueue<>(50, new EventComparator<>());

@@ -25,7 +25,7 @@ public class TradeDataConsumer extends DataConsumer implements KafkaMessageHandl
     public TradeDataConsumer(PricingEngine pricingEngine,
                              KafkaConsumerClient consumerClient,
                              List<KafkaSubscriptionDetails> subscriptionDetails) {
-        super("Trade data consumer", new CountDownLatch(subscriptionDetails.size()));
+        super("Trade-Data", new CountDownLatch(subscriptionDetails.size()));
         this.pricingEngine = pricingEngine;
         this.consumerClient = consumerClient;
         this.requests = subscriptionDetails.stream().map(d -> new KafkaSubscriptionRequest(d, this)).toList();
@@ -34,13 +34,6 @@ public class TradeDataConsumer extends DataConsumer implements KafkaMessageHandl
     @Override
     public void consumerInit() {
         requests.forEach(consumerClient::subscribeToBroadcastTopic);
-    }
-
-    @Override
-    public void consumerComplete() {
-        logger.info("Done consuming trade data.");
-        consumerStatus = DONE;
-        shutdown();
     }
 
     @Override

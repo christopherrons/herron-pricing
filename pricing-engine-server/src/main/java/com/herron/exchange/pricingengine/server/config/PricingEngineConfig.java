@@ -3,9 +3,7 @@ package com.herron.exchange.pricingengine.server.config;
 import com.herron.exchange.common.api.common.api.MessageFactory;
 import com.herron.exchange.common.api.common.kafka.KafkaBroadcastHandler;
 import com.herron.exchange.common.api.common.kafka.KafkaConsumerClient;
-import com.herron.exchange.common.api.common.kafka.model.KafkaSubscriptionDetails;
 import com.herron.exchange.common.api.common.mapping.DefaultMessageFactory;
-import com.herron.exchange.common.api.common.messages.common.PartitionKey;
 import com.herron.exchange.integrations.eurex.EurexReferenceDataApiClient;
 import com.herron.exchange.integrations.eurex.model.EurexApiClientProperties;
 import com.herron.exchange.pricingengine.server.PricingEngine;
@@ -16,20 +14,16 @@ import com.herron.exchange.pricingengine.server.consumers.TradeDataConsumer;
 import com.herron.exchange.pricingengine.server.marketdata.MarketDataService;
 import com.herron.exchange.pricingengine.server.marketdata.external.EurexPreviousDaySettlementHandler;
 import com.herron.exchange.pricingengine.server.marketdata.external.ExternalMarketDataHandler;
+import com.herron.exchange.pricingengine.server.pricemodels.TheoreticalPriceCalculator;
+import com.herron.exchange.pricingengine.server.pricemodels.fixedincome.bonds.BondDiscountingPriceModel;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.kafka.core.ConsumerFactory;
-import org.springframework.kafka.core.KafkaTemplate;
-
-import java.util.List;
-import java.util.Map;
 
 import static com.herron.exchange.common.api.common.enums.KafkaTopicEnum.*;
 
 @Configuration
 public class PricingEngineConfig {
-    private static final String GROUP_ID = "pricing-engine";
 
     @Bean
     public MessageFactory messageFactory() {
@@ -37,10 +31,15 @@ public class PricingEngineConfig {
     }
 
     @Bean
-    public KafkaBroadcastHandler kafkaBroadcastHandler(KafkaTemplate<String, Object> kafkaTemplate) {
-        return new KafkaBroadcastHandler(kafkaTemplate,
-                Map.of(new PartitionKey(REAL_TIME_PRICES, 0), 5000)
+    public TheoreticalPriceCalculator theoreticalPriceCalculator(MarketDataService marketDataService) {
+        return new TheoreticalPriceCalculator(
+                new BondDiscountingPriceModel(marketDataService)
         );
+    }
+
+    @Bean
+    public PricingEngine pricingEngine(KafkaBroadcastHandler broadcastHandler, TheoreticalPriceCalculator theoreticalPriceCalculator) {
+        return new PricingEngine(broadcastHandler, theoreticalPriceCalculator);
     }
 
     @Bean
@@ -71,33 +70,18 @@ public class PricingEngineConfig {
     }
 
     @Bean
-    public KafkaConsumerClient kafkaConsumerClient(MessageFactory messageFactory, ConsumerFactory<String, String> consumerFactor) {
-        return new KafkaConsumerClient(messageFactory, consumerFactor);
+    public ReferenceDataConsumer referenceDataConsumer(KafkaConsumerClient kafkaConsumerClient, KafkaConfig.KafkaConsumerConfig config) {
+        return new ReferenceDataConsumer(kafkaConsumerClient, config.getDetails(REFERENCE_DATA));
     }
 
     @Bean
-    public ReferenceDataConsumer referenceDataConsumer(KafkaConsumerClient kafkaConsumerClient) {
-        return new ReferenceDataConsumer(kafkaConsumerClient,
-                List.of(
-                        new KafkaSubscriptionDetails(GROUP_ID, new PartitionKey(REFERENCE_DATA, 0), 0, 1000)
-                )
-        );
+    public TopOfBookConsumer topOfBookConsumer(PricingEngine pricingEngine, KafkaConsumerClient kafkaConsumerClient, KafkaConfig.KafkaConsumerConfig config) {
+        return new TopOfBookConsumer(pricingEngine, kafkaConsumerClient, config.getDetails(TOP_OF_BOOK_QUOTE));
     }
 
     @Bean
-    public TopOfBookConsumer topOfBookConsumer(PricingEngine pricingEngine, KafkaConsumerClient kafkaConsumerClient) {
-        return new TopOfBookConsumer(pricingEngine, kafkaConsumerClient,
-                List.of(
-                        new KafkaSubscriptionDetails(GROUP_ID, new PartitionKey(TOP_OF_BOOK_QUOTE, 0), 0, 1000)
-                ));
-    }
-
-    @Bean
-    public TradeDataConsumer tradeDataConsumer(PricingEngine pricingEngine, KafkaConsumerClient kafkaConsumerClient) {
-        return new TradeDataConsumer(pricingEngine, kafkaConsumerClient,
-                List.of(
-                        new KafkaSubscriptionDetails(GROUP_ID, new PartitionKey(TRADE_DATA, 0), 0, 1000)
-                ));
+    public TradeDataConsumer tradeDataConsumer(PricingEngine pricingEngine, KafkaConsumerClient kafkaConsumerClient, KafkaConfig.KafkaConsumerConfig config) {
+        return new TradeDataConsumer(pricingEngine, kafkaConsumerClient, config.getDetails(TRADE_DATA));
     }
 
     @Bean(initMethod = "init")

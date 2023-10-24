@@ -1,16 +1,36 @@
 server:
   port: 8082
 
-spring:
-  kafka:
-    bootstrap-servers: "localhost:9092"
-
 kafka:
-  topic:
-    real-time-prices:
-      nr-of-partitions: 1
-    previous-settlement-price-data:
-      nr-of-partitions: 1
+  bootstrap-servers: "localhost:9092"
+  producer:
+    topic:
+      real-time-prices:
+        nr-of-partitions: 1
+      previous-settlement-price-data:
+        nr-of-partitions: 1
+    broadcast:
+      config:
+        - partition: 0
+          event-logging: 1000
+          topic: "previous-settlement-price-data"
+        - partition: 0
+          event-logging: 10000
+          topic: "real-time-prices"
+  consumer:
+    config:
+      - offset: 0
+        partition: 0
+        event-logging: 10000
+        topic: "system-trade-data"
+      - offset: 0
+        partition: 0
+        event-logging: 10000
+        topic: "top-of-book-quote"
+      - offset: 0
+        partition: 0
+        event-logging: 1000
+        topic: "reference-data"
 
 reference-data:
   external:

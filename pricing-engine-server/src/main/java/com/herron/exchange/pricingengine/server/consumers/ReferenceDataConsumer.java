@@ -17,15 +17,13 @@ import com.herron.exchange.common.api.common.messages.refdata.Product;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-import static com.herron.exchange.common.api.common.enums.DataStreamEnum.DONE;
-
 
 public class ReferenceDataConsumer extends DataConsumer implements KafkaMessageHandler {
     private final KafkaConsumerClient consumerClient;
     private final List<KafkaSubscriptionRequest> requests;
 
     public ReferenceDataConsumer(KafkaConsumerClient consumerClient, List<KafkaSubscriptionDetails> subscriptionDetails) {
-        super("Reference Data", new CountDownLatch(subscriptionDetails.size()));
+        super("Reference-Data", new CountDownLatch(subscriptionDetails.size()));
         this.consumerClient = consumerClient;
         this.requests = subscriptionDetails.stream().map(d -> new KafkaSubscriptionRequest(d, this)).toList();
     }
@@ -33,13 +31,6 @@ public class ReferenceDataConsumer extends DataConsumer implements KafkaMessageH
     @Override
     public void consumerInit() {
         requests.forEach(consumerClient::subscribeToBroadcastTopic);
-    }
-
-    @Override
-    public void consumerComplete() {
-        logger.info("Done consuming reference data");
-        consumerStatus = DONE;
-        shutdown();
     }
 
     @Override
