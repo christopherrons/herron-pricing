@@ -25,12 +25,12 @@ public class PricingEngine {
     }
 
     public void queueTrade(Trade trade) {
-        String id = ReferenceDataCache.getCache().getInstrument(trade.instrumentId()).product().market().marketId();
+        String id = ReferenceDataCache.getCache().getInstrument(trade.instrumentId()).product().productId();
         queueMessage(id, trade);
     }
 
     public void queueQuote(PriceQuote quote) {
-        String id = ReferenceDataCache.getCache().getOrderbookData(quote.orderbookId()).instrument().product().market().marketId();
+        String id = ReferenceDataCache.getCache().getOrderbookData(quote.orderbookId()).instrument().product().productId();
         queueMessage(id, quote);
     }
 

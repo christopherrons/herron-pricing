@@ -4,58 +4,47 @@ import com.herron.exchange.common.api.common.api.Message;
 import com.herron.exchange.common.api.common.api.kafka.KafkaMessageHandler;
 import com.herron.exchange.common.api.common.api.referencedata.instruments.Instrument;
 import com.herron.exchange.common.api.common.api.referencedata.orderbook.OrderbookData;
-import com.herron.exchange.common.api.common.bootloader.Bootloader;
 import com.herron.exchange.common.api.common.cache.ReferenceDataCache;
-import com.herron.exchange.common.api.common.enums.KafkaTopicEnum;
+import com.herron.exchange.common.api.common.consumer.DataConsumer;
 import com.herron.exchange.common.api.common.kafka.KafkaConsumerClient;
-import com.herron.exchange.common.api.common.kafka.KafkaSubscriptionRequest;
+import com.herron.exchange.common.api.common.kafka.model.KafkaSubscriptionDetails;
+import com.herron.exchange.common.api.common.kafka.model.KafkaSubscriptionRequest;
 import com.herron.exchange.common.api.common.messages.BroadcastMessage;
 import com.herron.exchange.common.api.common.messages.common.DataStreamState;
-import com.herron.exchange.common.api.common.messages.common.PartitionKey;
 import com.herron.exchange.common.api.common.messages.refdata.Market;
 import com.herron.exchange.common.api.common.messages.refdata.Product;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-import static com.herron.exchange.common.api.common.enums.BootloaderStatus.COMPLETE;
+import static com.herron.exchange.common.api.common.enums.DataStreamEnum.DONE;
 
 
-public class ReferenceDataConsumerBootloader extends Bootloader implements KafkaMessageHandler {
-    private final CountDownLatch countDownLatch;
+public class ReferenceDataConsumer extends DataConsumer implements KafkaMessageHandler {
     private final KafkaConsumerClient consumerClient;
     private final List<KafkaSubscriptionRequest> requests;
 
-    public ReferenceDataConsumerBootloader(CountDownLatch countDownLatch,
-                                           KafkaConsumerClient consumerClient) {
-        super("Reference Data Bootloader", countDownLatch);
-        this.countDownLatch = countDownLatch;
+    public ReferenceDataConsumer(KafkaConsumerClient consumerClient, List<KafkaSubscriptionDetails> subscriptionDetails) {
+        super("Reference Data", new CountDownLatch(subscriptionDetails.size()));
         this.consumerClient = consumerClient;
-        this.requests = List.of(
-                new KafkaSubscriptionRequest("pricing", new PartitionKey(KafkaTopicEnum.REFERENCE_DATA, 0), this, 0, 1000)
-        );
+        this.requests = subscriptionDetails.stream().map(d -> new KafkaSubscriptionRequest(d, this)).toList();
     }
 
     @Override
-    public void bootloaderInit() {
+    public void consumerInit() {
         requests.forEach(consumerClient::subscribeToBroadcastTopic);
     }
 
     @Override
-    public void bootloaderComplete() {
-        var count = countDownLatch.getCount();
-        countDownLatch.countDown();
-        logger.info("Done consuming reference data, countdown latch from {} to {}.", count, countDownLatch.getCount());
-        requests.forEach(request -> consumerClient.stop(request.partitionKey()));
-        bootloaderStatus = COMPLETE;
+    public void consumerComplete() {
+        logger.info("Done consuming reference data");
+        consumerStatus = DONE;
+        shutdown();
     }
 
     @Override
     public void onMessage(BroadcastMessage broadcastMessage) {
-        handleMessage(broadcastMessage.message());
-    }
-
-    private void handleMessage(Message message) {
+        Message message = broadcastMessage.message();
         if (message instanceof Market market) {
             ReferenceDataCache.getCache().addMarket(market);
 
@@ -71,7 +60,13 @@ public class ReferenceDataConsumerBootloader extends Bootloader implements Kafka
         } else if (message instanceof DataStreamState state) {
             switch (state.state()) {
                 case START -> logger.info("Started consuming reference data.");
-                case DONE -> bootloaderComplete();
+                case DONE -> {
+                    consumerClient.stop(broadcastMessage.partitionKey());
+                    countDownLatch.countDown();
+                    if (countDownLatch.getCount() == 0) {
+                        consumerComplete();
+                    }
+                }
             }
         }
     }
