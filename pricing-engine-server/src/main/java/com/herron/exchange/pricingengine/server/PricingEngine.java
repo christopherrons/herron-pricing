@@ -30,7 +30,7 @@ public class PricingEngine {
     }
 
     public void queueQuote(PriceQuote quote) {
-        String id = ReferenceDataCache.getCache().getOrderbookData(quote.orderbookId()).instrument().product().productId();
+        String id = ReferenceDataCache.getCache().getOrderbookData(quote.orderbookId()).instrument().product().productName();
         queueMessage(id, quote);
     }
 

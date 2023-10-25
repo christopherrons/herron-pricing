@@ -26,10 +26,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static com.herron.exchange.pricingengine.server.PricingEngineBootloader.PREVIOUS_SETTLEMENT_PRICE_KEY;
-import static com.herron.exchange.pricingengine.server.snapshot.PriceSnapshotHandler.REAL_TIME_PRICE_KEY;
 
 @Configuration
 public class KafkaConfig {
@@ -37,11 +33,7 @@ public class KafkaConfig {
 
     @Bean
     public KafkaBroadcastHandler kafkaBroadcastHandler(KafkaTemplate<String, Object> kafkaTemplate, KafkaConfig.KafkaProducerConfig config) {
-        return new KafkaBroadcastHandler(kafkaTemplate,
-                Stream.of(PREVIOUS_SETTLEMENT_PRICE_KEY, REAL_TIME_PRICE_KEY)
-                        .map(k -> config.createBroadcastProducer(k, kafkaTemplate))
-                        .collect(Collectors.toMap(KafkaBroadcastProducer::getPartitionKey, k -> k))
-        );
+        return new KafkaBroadcastHandler(kafkaTemplate, config.createBroadcastProducer(kafkaTemplate));
     }
 
     @Bean
@@ -107,11 +99,13 @@ public class KafkaConfig {
                                        String topic) {
         }
 
-        KafkaBroadcastProducer createBroadcastProducer(PartitionKey partitionKey, KafkaTemplate<String, Object> kafkaTemplate) {
+        Map<PartitionKey, KafkaBroadcastProducer> createBroadcastProducer(KafkaTemplate<String, Object> kafkaTemplate) {
             return config.stream()
-                    .filter(c -> c.topic.equals(partitionKey.topicEnum().getTopicName()) && c.partition == partitionKey.partitionId())
-                    .map(c -> new KafkaBroadcastProducer(partitionKey, kafkaTemplate, new EventLogger(partitionKey.toString(), c.eventLogging)))
-                    .findFirst().orElse(null);
+                    .map(c -> {
+                        var pk = new PartitionKey(KafkaTopicEnum.fromValue(c.topic()), c.partition());
+                        return new KafkaBroadcastProducer(pk, kafkaTemplate, new EventLogger(pk.toString(), c.eventLogging));
+                    })
+                    .collect(Collectors.toMap(KafkaBroadcastProducer::getPartitionKey, k -> k));
         }
     }
 

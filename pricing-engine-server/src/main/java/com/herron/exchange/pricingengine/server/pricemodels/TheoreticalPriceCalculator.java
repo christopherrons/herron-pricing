@@ -5,12 +5,16 @@ import com.herron.exchange.common.api.common.api.referencedata.instruments.BondI
 import com.herron.exchange.common.api.common.api.referencedata.instruments.FutureInstrument;
 import com.herron.exchange.common.api.common.api.referencedata.instruments.Instrument;
 import com.herron.exchange.common.api.common.api.referencedata.instruments.OptionInstrument;
+import com.herron.exchange.common.api.common.messages.common.Price;
 import com.herron.exchange.common.api.common.messages.pricing.ImmutableFailedPriceModelResult;
 import com.herron.exchange.pricingengine.server.pricemodels.fixedincome.bonds.BondDiscountingPriceModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Instant;
 import java.time.LocalDate;
+
+import static com.herron.exchange.common.api.common.enums.EventType.SYSTEM;
 
 public class TheoreticalPriceCalculator {
     private static final Logger LOGGER = LoggerFactory.getLogger(TheoreticalPriceCalculator.class);
@@ -62,6 +66,9 @@ public class TheoreticalPriceCalculator {
         LOGGER.error(reason);
         return ImmutableFailedPriceModelResult.builder()
                 .failReason(reason)
+                .eventType(SYSTEM)
+                .price(Price.ZERO)
+                .timeOfEventMs(Instant.now().toEpochMilli())
                 .build();
     }
 }
