@@ -8,6 +8,7 @@ import com.herron.exchange.common.api.common.enums.DayCountConventionEnum;
 import com.herron.exchange.common.api.common.enums.InterpolationMethod;
 import com.herron.exchange.common.api.common.messages.common.BusinessCalendar;
 import com.herron.exchange.common.api.common.messages.common.MonetaryAmount;
+import com.herron.exchange.common.api.common.messages.common.Timestamp;
 import com.herron.exchange.common.api.common.messages.marketdata.ImmutableDefaultTimeComponentKey;
 import com.herron.exchange.common.api.common.messages.marketdata.entries.ImmutableMarketDataYieldCurve;
 import com.herron.exchange.common.api.common.messages.marketdata.statickeys.ImmutableMarketDataYieldCurveStaticKey;
@@ -44,8 +45,8 @@ class BondDiscountingPriceModelTest {
                 false,
                 0,
                 2,
-                LocalDate.of(2023, 1, 1),
-                LocalDate.of(2021, 1, 1),
+                Timestamp.from(LocalDate.of(2023, 1, 1)),
+                Timestamp.from(LocalDate.of(2021, 1, 1)),
                 1000,
                 CompoundingMethodEnum.COMPOUNDING,
                 0.04,
@@ -53,7 +54,7 @@ class BondDiscountingPriceModelTest {
                 buildProduct(BusinessCalendar.noHolidayCalendar())
         );
 
-        LocalDate now = LocalDate.of(2021, 6, 30);
+        var now = Timestamp.from(LocalDate.of(2021, 6, 30));
         var result = (BondDiscountPriceModelResult) bondPriceModel.calculateBondPrice(bond, now);
         assertEquals(19.90, result.accruedInterest(), 0.1);
     }
@@ -64,8 +65,8 @@ class BondDiscountingPriceModelTest {
                 false,
                 0.04,
                 2,
-                LocalDate.of(2031, 1, 1),
-                LocalDate.of(2011, 1, 1),
+                Timestamp.from(LocalDate.of(2031, 1, 1)),
+                Timestamp.from(LocalDate.of(2011, 1, 1)),
                 1000,
                 CompoundingMethodEnum.COMPOUNDING,
                 0.05,
@@ -73,7 +74,7 @@ class BondDiscountingPriceModelTest {
                 buildProduct(BusinessCalendar.noHolidayCalendar())
         );
 
-        LocalDate now = LocalDate.of(2011, 4, 30);
+        var now = Timestamp.from(LocalDate.of(2011, 4, 30));
         var result = (BondDiscountPriceModelResult) bondPriceModel.calculateBondPrice(bond, now);
         assertEquals(16.43, result.accruedInterest(), 0.01);
     }
@@ -84,8 +85,8 @@ class BondDiscountingPriceModelTest {
                 false,
                 0.05,
                 1,
-                LocalDate.of(2040, 1, 1),
-                LocalDate.of(2020, 1, 1),
+                Timestamp.from(LocalDate.of(2040, 1, 1)),
+                Timestamp.from(LocalDate.of(2020, 1, 1)),
                 1000,
                 CompoundingMethodEnum.COMPOUNDING,
                 0.00,
@@ -93,7 +94,7 @@ class BondDiscountingPriceModelTest {
                 buildProduct(BusinessCalendar.noHolidayCalendar())
         );
 
-        LocalDate now = LocalDate.of(2019, 1, 1);
+        var now = Timestamp.from(LocalDate.of(2019, 1, 1));
         var result = (BondDiscountPriceModelResult) bondPriceModel.calculateBondPrice(bond, now);
         assertEquals(376.89, result.dirtyPrice().getRealValue(), 0.1);
         assertEquals(result.dirtyPrice().getRealValue(), result.dirtyPrice().getRealValue(), 0);
@@ -106,15 +107,15 @@ class BondDiscountingPriceModelTest {
                 false,
                 0.03,
                 2,
-                LocalDate.of(2023, 1, 1),
-                LocalDate.of(2021, 1, 1),
+                Timestamp.from(LocalDate.of(2023, 1, 1)),
+                Timestamp.from(LocalDate.of(2021, 1, 1)),
                 1000,
                 CompoundingMethodEnum.COMPOUNDING,
                 0.05,
                 ACT365,
                 buildProduct(BusinessCalendar.noHolidayCalendar()));
 
-        LocalDate now = LocalDate.of(2020, 1, 1);
+        var now = Timestamp.from(LocalDate.of(2020, 1, 1));
         var result = (BondDiscountPriceModelResult) bondPriceModel.calculateBondPrice(bond, now);
         assertEquals(1038.54, result.dirtyPrice().getRealValue(), 1);
         assertEquals(result.dirtyPrice().getRealValue(), result.dirtyPrice().getRealValue(), 0.01);
@@ -127,8 +128,8 @@ class BondDiscountingPriceModelTest {
                 false,
                 0.04,
                 1,
-                LocalDate.of(2040, 1, 1),
-                LocalDate.of(2020, 1, 1),
+                Timestamp.from(LocalDate.of(2040, 1, 1)),
+                Timestamp.from(LocalDate.of(2020, 1, 1)),
                 1000,
                 CompoundingMethodEnum.COMPOUNDING,
                 0.025,
@@ -136,7 +137,7 @@ class BondDiscountingPriceModelTest {
                 buildProduct(BusinessCalendar.noHolidayCalendar())
         );
 
-        LocalDate now = LocalDate.of(2020, 1, 1);
+        var now = Timestamp.from(LocalDate.of(2020, 1, 1));
         var result = (BondDiscountPriceModelResult) bondPriceModel.calculateBondPrice(bond, now);
         assertEquals(796.14, result.dirtyPrice().getRealValue(), 0.01);
         assertEquals(result.dirtyPrice().getRealValue(), result.dirtyPrice().getRealValue(), 0.01);
@@ -149,8 +150,8 @@ class BondDiscountingPriceModelTest {
                 false,
                 0.04,
                 2,
-                LocalDate.of(2040, 1, 1),
-                LocalDate.of(2020, 1, 1),
+                Timestamp.from(LocalDate.of(2040, 1, 1)),
+                Timestamp.from(LocalDate.of(2020, 1, 1)),
                 1000,
                 CompoundingMethodEnum.COMPOUNDING,
                 0.025,
@@ -158,7 +159,7 @@ class BondDiscountingPriceModelTest {
                 buildProduct(BusinessCalendar.noHolidayCalendar())
         );
 
-        LocalDate now = LocalDate.of(2020, 1, 1);
+        var now = Timestamp.from(LocalDate.of(2020, 1, 1));
         var result = (BondDiscountPriceModelResult) bondPriceModel.calculateBondPrice(bond, now);
         assertEquals(798.83, result.dirtyPrice().getRealValue(), 1);
         assertEquals(result.dirtyPrice().getRealValue(), result.dirtyPrice().getRealValue(), 0.01);
@@ -171,8 +172,8 @@ class BondDiscountingPriceModelTest {
                 false,
                 0.1,
                 2,
-                LocalDate.of(2028, 10, 1),
-                LocalDate.of(2023, 1, 1),
+                Timestamp.from(LocalDate.of(2028, 10, 1)),
+                Timestamp.from(LocalDate.of(2023, 1, 1)),
                 1000,
                 CompoundingMethodEnum.COMPOUNDING,
                 0.015,
@@ -180,7 +181,7 @@ class BondDiscountingPriceModelTest {
                 buildProduct(BusinessCalendar.noHolidayCalendar())
         );
 
-        LocalDate now = LocalDate.of(2020, 1, 1);
+        var now = Timestamp.from(LocalDate.of(2020, 1, 1));
         var result = (BondDiscountPriceModelResult) bondPriceModel.calculateBondPrice(bond, now);
         assertEquals(677.91, result.dirtyPrice().getRealValue(), 0.01);
         assertEquals(result.dirtyPrice().getRealValue(), result.dirtyPrice().getRealValue(), 0.01);
@@ -193,8 +194,8 @@ class BondDiscountingPriceModelTest {
                 true,
                 1,
                 2,
-                LocalDate.of(2040, 1, 1),
-                LocalDate.of(2020, 1, 1),
+                Timestamp.from(LocalDate.of(2040, 1, 1)),
+                Timestamp.from(LocalDate.of(2020, 1, 1)),
                 1000,
                 CompoundingMethodEnum.COMPOUNDING,
                 0.025,
@@ -210,7 +211,7 @@ class BondDiscountingPriceModelTest {
                         .yieldCurve(curve)
                         .build()
         );
-        LocalDate now = LocalDate.of(2020, 1, 1);
+        var now = Timestamp.from(LocalDate.of(2020, 1, 1));
         var result = (BondDiscountPriceModelResult) bondPriceModel.calculateBondPrice(bond, now);
         assertEquals(812.32, result.dirtyPrice().getRealValue(), 1);
         assertEquals(result.dirtyPrice().getRealValue(), result.dirtyPrice().getRealValue(), 0.01);
@@ -236,8 +237,8 @@ class BondDiscountingPriceModelTest {
     private BondInstrument buildInstrument(boolean useCurve,
                                            double yieldPerYear,
                                            int frequency,
-                                           LocalDate maturityData,
-                                           LocalDate startDate,
+                                           Timestamp maturityData,
+                                           Timestamp startDate,
                                            double nominalValue,
                                            CompoundingMethodEnum compoundingMethodEnum,
                                            double couponRate,
@@ -258,8 +259,8 @@ class BondDiscountingPriceModelTest {
                         .build()
                 )
                 .product(product)
-                .firstTradingDate(LocalDate.MIN)
-                .lastTradingDate(LocalDate.MAX)
+                .firstTradingDate(Timestamp.from(LocalDate.MIN))
+                .lastTradingDate(Timestamp.from(LocalDate.MAX))
                 .build();
     }
 

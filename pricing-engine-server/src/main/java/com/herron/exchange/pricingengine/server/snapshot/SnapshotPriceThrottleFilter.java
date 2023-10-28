@@ -30,7 +30,7 @@ public class SnapshotPriceThrottleFilter {
             return true;
         }
 
-        return timeAndPrice.timeOfPriceMs() - previousTimeAndPrice.timeOfPriceMs() >= minTimeBeforeUpdate.getSeconds() * 1000 &&
+        return timeAndPrice.timestamp().timeBetweenMs(previousTimeAndPrice.timestamp()) >= minTimeBeforeUpdate.getSeconds() * 1000 &&
                 previousTimeAndPrice.price().percentageChange(timeAndPrice.price()) >= minPriceChange;
     }
 }

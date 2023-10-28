@@ -6,12 +6,12 @@ import com.herron.exchange.common.api.common.api.referencedata.instruments.Futur
 import com.herron.exchange.common.api.common.api.referencedata.instruments.Instrument;
 import com.herron.exchange.common.api.common.api.referencedata.instruments.OptionInstrument;
 import com.herron.exchange.common.api.common.messages.common.Price;
+import com.herron.exchange.common.api.common.messages.common.Timestamp;
 import com.herron.exchange.common.api.common.messages.pricing.ImmutableFailedPriceModelResult;
 import com.herron.exchange.pricingengine.server.pricemodels.fixedincome.bonds.BondDiscountingPriceModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Instant;
 import java.time.LocalDate;
 
 import static com.herron.exchange.common.api.common.enums.EventType.SYSTEM;
@@ -43,7 +43,7 @@ public class TheoreticalPriceCalculator {
 
     private PriceModelResult calculate(BondInstrument instrument) {
         return switch (instrument.priceModel()) {
-            case BOND_DISCOUNT -> bondDiscountingPriceModel.calculateBondPrice(instrument, LocalDate.now());
+            case BOND_DISCOUNT -> bondDiscountingPriceModel.calculateBondPrice(instrument, Timestamp.now());
             default -> createFailedResult(String.format("Bond price model %s not supported.", instrument));
         };
     }
@@ -68,7 +68,7 @@ public class TheoreticalPriceCalculator {
                 .failReason(reason)
                 .eventType(SYSTEM)
                 .price(Price.ZERO)
-                .timeOfEventMs(Instant.now().toEpochMilli())
+                .timeOfEvent(Timestamp.now())
                 .build();
     }
 }

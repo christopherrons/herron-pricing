@@ -103,7 +103,7 @@ public class KafkaConfig {
             return config.stream()
                     .map(c -> {
                         var pk = new PartitionKey(KafkaTopicEnum.fromValue(c.topic()), c.partition());
-                        return new KafkaBroadcastProducer(pk, kafkaTemplate, new EventLogger(pk.toString(), c.eventLogging));
+                        return new KafkaBroadcastProducer(pk, kafkaTemplate, new EventLogger(c.eventLogging));
                     })
                     .collect(Collectors.toMap(KafkaBroadcastProducer::getPartitionKey, k -> k));
         }

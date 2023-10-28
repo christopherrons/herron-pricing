@@ -7,6 +7,7 @@ import com.herron.exchange.common.api.common.enums.DayCountConventionEnum;
 import com.herron.exchange.common.api.common.enums.MarketDataRequestTimeFilter;
 import com.herron.exchange.common.api.common.enums.Status;
 import com.herron.exchange.common.api.common.messages.common.Price;
+import com.herron.exchange.common.api.common.messages.common.Timestamp;
 import com.herron.exchange.common.api.common.messages.marketdata.ImmutableDefaultTimeComponentKey;
 import com.herron.exchange.common.api.common.messages.marketdata.requests.ImmutableMarketDataYieldCurveRequest;
 import com.herron.exchange.common.api.common.messages.marketdata.response.MarketDataYieldCurveResponse;
@@ -16,8 +17,6 @@ import com.herron.exchange.common.api.common.messages.pricing.ImmutableFailedPri
 import com.herron.exchange.pricingengine.server.marketdata.MarketDataService;
 import com.herron.exchange.pricingengine.server.pricemodels.fixedincome.bonds.model.CouponPeriod;
 
-import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.function.DoubleUnaryOperator;
@@ -34,14 +33,14 @@ public class BondDiscountingPriceModel {
         this.marketDataService = marketDataService;
     }
 
-    public PriceModelResult calculateBondPrice(BondInstrument instrument, LocalDate valuationTime) {
+    public PriceModelResult calculateBondPrice(BondInstrument instrument, Timestamp valuationTime) {
         if (instrument.priceModelParameters().calculateWithCurve()) {
             return calculateWithCurve(instrument, valuationTime);
         }
         return calculateWithConstantYield(instrument, valuationTime);
     }
 
-    private PriceModelResult calculateWithCurve(BondInstrument instrument, LocalDate valuationTime) {
+    private PriceModelResult calculateWithCurve(BondInstrument instrument, Timestamp valuationTime) {
         String curveId = instrument.priceModelParameters().yieldCurveId();
         if (curveId == null) {
             return ImmutableFailedPriceModelResult.builder().failReason("CurveId is null.").build();
@@ -61,7 +60,7 @@ public class BondDiscountingPriceModel {
         return calculateBondPrice(instrument, yieldCurve::getYield, valuationTime);
     }
 
-    private PriceModelResult calculateWithConstantYield(BondInstrument instrument, LocalDate valuationTime) {
+    private PriceModelResult calculateWithConstantYield(BondInstrument instrument, Timestamp valuationTime) {
         var yieldPerYear = instrument.priceModelParameters().constantYield();
         if (yieldPerYear == null) {
             return ImmutableFailedPriceModelResult.builder().failReason("Yield per year is null.").build();
@@ -71,7 +70,7 @@ public class BondDiscountingPriceModel {
 
     private PriceModelResult calculateBondPrice(BondInstrument bondInstrument,
                                                 DoubleUnaryOperator yieldAtMaturityExtractor,
-                                                LocalDate valuationTime) {
+                                                Timestamp valuationTime) {
         if (valuationTime.isBefore(bondInstrument.startDate())) {
             valuationTime = bondInstrument.startDate();
         }
@@ -82,11 +81,11 @@ public class BondDiscountingPriceModel {
 
     private PriceModelResult calculateBondPrice(BondInstrument bondInstrument,
                                                 DoubleUnaryOperator yieldAtMaturityExtractor,
-                                                LocalDate valuationTime,
+                                                Timestamp valuationTime,
                                                 List<CouponPeriod> periods) {
         double presentValue = 0;
         double accruedInterest = 0;
-        LocalDate maturityDate = bondInstrument.maturityDate();
+        Timestamp maturityDate = bondInstrument.maturityDate();
         for (CouponPeriod period : periods) {
             if (period.endDate().isBefore(valuationTime)) {
                 continue;
@@ -109,29 +108,18 @@ public class BondDiscountingPriceModel {
                 .cleanPrice(Price.create(presentValueAmount))
                 .price(Price.create(presentValueAmount + accruedInterestAmount))
                 .eventType(SYSTEM)
-                .timeOfEventMs(Instant.now().toEpochMilli())
+                .timeOfEvent(Timestamp.now())
                 .status(OK)
                 .build();
     }
 
-    private double calculateDiscountFactor(BondInstrument bondInstrument, LocalDate start, LocalDate end, DoubleUnaryOperator yieldAtMaturityExtractor) {
-        var timeToMaturity = YEARS.between(start, end);
+    private double calculateDiscountFactor(BondInstrument bondInstrument, Timestamp start, Timestamp end, DoubleUnaryOperator yieldAtMaturityExtractor) {
+        var timeToMaturity = YEARS.between(start.toLocalDate(), end.toLocalDate());
         double yieldAtTimeToMaturity = yieldAtMaturityExtractor.applyAsDouble(timeToMaturity);
         return bondInstrument.priceModelParameters().compoundingMethod().calculateValue(yieldAtTimeToMaturity, timeToMaturity, bondInstrument.couponAnnualFrequency());
     }
 
-    private double calculateAccruedInterest(double annualCouponRate, LocalDate startDate, LocalDate valuationTime, DayCountConventionEnum dayCountConvention) {
+    private double calculateAccruedInterest(double annualCouponRate, Timestamp startDate, Timestamp valuationTime, DayCountConventionEnum dayCountConvention) {
         return annualCouponRate * dayCountConvention.calculateDayCountFraction(startDate, valuationTime);
-    }
-
-    private double calculateDiscountFactor(CompoundingMethodEnum compoundingMethodEnum,
-                                           double yieldAtTime,
-                                           double timeToMaturity,
-                                           int couponYearlyFrequency) {
-        return switch (compoundingMethodEnum) {
-            case SIMPLE -> (yieldAtTime / couponYearlyFrequency) * timeToMaturity;
-            case COMPOUNDING -> Math.pow(1 + (yieldAtTime / couponYearlyFrequency), timeToMaturity * couponYearlyFrequency);
-            case CONTINUOUS -> Math.exp(yieldAtTime * timeToMaturity);
-        };
     }
 }

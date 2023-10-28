@@ -24,6 +24,7 @@ import static com.herron.exchange.common.api.common.enums.EventType.SYSTEM;
 import static com.herron.exchange.common.api.common.enums.OrderSideEnum.ASK;
 import static com.herron.exchange.common.api.common.enums.OrderSideEnum.BID;
 import static com.herron.exchange.common.api.common.enums.PriceType.*;
+import static com.herron.exchange.common.api.common.enums.TradeType.AUTOMATCH;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -36,8 +37,8 @@ class PriceSnapshotCalculatorTest {
     void before() {
         var instrument = ImmutableDefaultEquityInstrument.builder()
                 .instrumentId("instrumendId")
-                .firstTradingDate(LocalDate.MIN)
-                .lastTradingDate(LocalDate.MAX)
+                .firstTradingDate(Timestamp.from(LocalDate.MIN))
+                .lastTradingDate(Timestamp.from(LocalDate.MAX))
                 .product(ImmutableProduct.builder().currency("eur").productId("product").market(ImmutableMarket.builder().marketId("market").businessCalendar(BusinessCalendar.defaultWeekendCalendar()).build()).build())
                 .priceModelParameters(ImmutableIntangiblePriceModelParameters.builder().build())
                 .build();
@@ -92,8 +93,8 @@ class PriceSnapshotCalculatorTest {
         return ImmutableDefaultBondInstrument.builder()
                 .instrumentId("instrumentId")
                 .couponAnnualFrequency(2)
-                .maturityDate(LocalDate.of(2023, 1, 1))
-                .startDate(LocalDate.of(2021, 1, 1))
+                .maturityDate(Timestamp.from(LocalDate.of(2023, 1, 1)))
+                .startDate(Timestamp.from(LocalDate.of(2021, 1, 1)))
                 .nominalValue(MonetaryAmount.create(1000, "eur"))
                 .couponRate(0.05)
                 .priceModelParameters(ImmutableBondDiscountPriceModelParameters.builder().dayCountConvention(ACT365)
@@ -105,8 +106,8 @@ class PriceSnapshotCalculatorTest {
                         .build()
                 )
                 .product(buildProduct(BusinessCalendar.noHolidayCalendar()))
-                .firstTradingDate(LocalDate.MIN)
-                .lastTradingDate(LocalDate.MAX)
+                .firstTradingDate(Timestamp.from(LocalDate.MIN))
+                .lastTradingDate(Timestamp.from(LocalDate.MAX))
                 .build();
     }
 
@@ -136,17 +137,18 @@ class PriceSnapshotCalculatorTest {
                 .isBidSideAggressor(true)
                 .volume(Volume.create(volume))
                 .price(Price.create(price))
-                .timeOfEventMs(timeOfEventMs)
+                .timeOfEvent(Timestamp.from(timeOfEventMs))
                 .instrumentId("instrumentId")
                 .orderbookId("orderbookId")
                 .eventType(SYSTEM)
+                .tradeType(AUTOMATCH)
                 .build();
     }
 
     private PriceQuote createQuote(long timeOfEventMs, double price, OrderSideEnum side) {
         return ImmutablePriceQuote.builder()
                 .side(side)
-                .timeOfEventMs(timeOfEventMs)
+                .timeOfEvent(Timestamp.from(timeOfEventMs))
                 .orderbookId("orderbookId")
                 .eventType(SYSTEM)
                 .price(Price.create(price))

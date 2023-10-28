@@ -1,6 +1,7 @@
 package com.herron.exchange.pricingengine.server.pricemodels.fixedincome.bonds;
 
 import com.herron.exchange.common.api.common.api.referencedata.instruments.BondInstrument;
+import com.herron.exchange.common.api.common.messages.common.Timestamp;
 import com.herron.exchange.pricingengine.server.pricemodels.fixedincome.bonds.model.CouponPeriod;
 
 import java.util.ArrayList;
@@ -17,8 +18,8 @@ public class CouponCalculationUtils {
 
         // This does not handle all corner cases
         var businessCalendar = instrument.product().businessCalendar();
-        var startDate = instrument.startDate();
-        var maturityDate = instrument.maturityDate();
+        var startDate = instrument.startDate().toLocalDate();
+        var maturityDate = instrument.maturityDate().toLocalDate();
 
         long nrOfMonthsPerPeriod = 12 / instrument.couponAnnualFrequency();
 
@@ -28,8 +29,8 @@ public class CouponCalculationUtils {
         while (couponStartDate.isAfter(startDate) || couponStartDate.equals(startDate)) {
             couponPeriods.add(
                     new CouponPeriod(
-                            couponStartDate,
-                            couponEndDate,
+                            Timestamp.from(couponStartDate),
+                            Timestamp.from(couponEndDate),
                             instrument.couponRate() / instrument.couponAnnualFrequency()
                     )
             );

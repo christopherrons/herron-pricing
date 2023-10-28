@@ -5,6 +5,7 @@ import com.herron.exchange.common.api.common.api.referencedata.instruments.Instr
 import com.herron.exchange.common.api.common.enums.PriceType;
 import com.herron.exchange.common.api.common.enums.Status;
 import com.herron.exchange.common.api.common.messages.common.Price;
+import com.herron.exchange.common.api.common.messages.common.Timestamp;
 import com.herron.exchange.common.api.common.messages.marketdata.ImmutableDefaultTimeComponentKey;
 import com.herron.exchange.common.api.common.messages.marketdata.entries.ImmutableMarketDataPrice;
 import com.herron.exchange.common.api.common.messages.marketdata.entries.MarketDataPrice;
@@ -14,9 +15,7 @@ import com.herron.exchange.common.api.common.messages.trading.Trade;
 import com.herron.exchange.pricingengine.server.pricemodels.TheoreticalPriceCalculator;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 
 import static com.herron.exchange.common.api.common.enums.PriceType.*;
@@ -27,11 +26,11 @@ public class PriceSnapshotCalculator {
     private final SnapshotPriceThrottleFilter throttleFilter = new SnapshotPriceThrottleFilter(Duration.of(5, ChronoUnit.SECONDS), 0.001);
     private final Instrument instrument;
     private final TheoreticalPriceCalculator priceCalculator;
-    private TimeAndPrice vwapPrice = new TimeAndPrice(0, Price.EMPTY, VWAP);
-    private TimeAndPrice lastPrice = new TimeAndPrice(0, Price.EMPTY, LAST_PRICE);
-    private TimeAndPrice bidPrice = new TimeAndPrice(0, Price.EMPTY, BID_PRICE);
-    private TimeAndPrice askPrice = new TimeAndPrice(0, Price.EMPTY, ASK_PRICE);
-    private TimeAndPrice previousSettlementPrice = new TimeAndPrice(0, Price.EMPTY, SETTLEMENT);
+    private TimeAndPrice vwapPrice = new TimeAndPrice(Timestamp.from(0), Price.EMPTY, VWAP);
+    private TimeAndPrice lastPrice = new TimeAndPrice(Timestamp.from(0), Price.EMPTY, LAST_PRICE);
+    private TimeAndPrice bidPrice = new TimeAndPrice(Timestamp.from(0), Price.EMPTY, BID_PRICE);
+    private TimeAndPrice askPrice = new TimeAndPrice(Timestamp.from(0), Price.EMPTY, ASK_PRICE);
+    private TimeAndPrice previousSettlementPrice = new TimeAndPrice(Timestamp.from(0), Price.EMPTY, SETTLEMENT);
 
     public PriceSnapshotCalculator(Instrument instrument, TheoreticalPriceCalculator priceCalculator) {
         this.instrument = instrument;
@@ -40,15 +39,15 @@ public class PriceSnapshotCalculator {
 
     public MarketDataPrice updateAndGet(Trade trade) {
         Price vwap = vwapCalculator.updateAndGetVwap(trade);
-        vwapPrice = vwapPrice.from(trade.timeOfEventMs(), vwap);
-        lastPrice = lastPrice.from(trade.timeOfEventMs(), trade.price());
+        vwapPrice = vwapPrice.from(trade.timeOfEvent(), vwap);
+        lastPrice = lastPrice.from(trade.timeOfEvent(), trade.price());
         return getPrice();
     }
 
     public MarketDataPrice updateAndGet(PriceQuote priceQuote) {
         switch (priceQuote.side()) {
-            case BID -> bidPrice = bidPrice.from(priceQuote.timeOfEventMs(), priceQuote.price());
-            case ASK -> askPrice = askPrice.from(priceQuote.timeOfEventMs(), priceQuote.price());
+            case BID -> bidPrice = bidPrice.from(priceQuote.timeOfEvent(), priceQuote.price());
+            case ASK -> askPrice = askPrice.from(priceQuote.timeOfEvent(), priceQuote.price());
         }
 
         return getPrice();
@@ -60,8 +59,7 @@ public class PriceSnapshotCalculator {
             return null;
         }
 
-        Instant instant = Instant.ofEpochSecond(timeAndPrice.timeOfPriceMs);
-        LocalDateTime time = instant.atZone(ZoneId.of("UTC")).toLocalDateTime();
+        LocalDateTime time = timeAndPrice.timestamp.toLocalDateTime();
         return ImmutableMarketDataPrice.builder()
                 .priceType(timeAndPrice.priceType)
                 .staticKey(ImmutableMarketDataPriceStaticKey.builder().instrumentId(instrument.instrumentId()).build())
@@ -88,14 +86,14 @@ public class PriceSnapshotCalculator {
             case VWAP -> vwapPrice;
             case MID_BID_ASK_PRICE -> {
                 if (bidPrice.isValid() && askPrice.isValid()) {
-                    yield new TimeAndPrice(Instant.now().toEpochMilli(), bidPrice.price().add(askPrice.price()).divide(2), MID_BID_ASK_PRICE);
+                    yield new TimeAndPrice(Timestamp.now(), bidPrice.price().add(askPrice.price()).divide(2), MID_BID_ASK_PRICE);
                 }
                 yield TimeAndPrice.createInvalidPrice();
             }
             case THEORETICAL -> {
                 var result = priceCalculator.calculatePrice(instrument);
                 if (result.status() == Status.OK) {
-                    yield new TimeAndPrice(Instant.now().toEpochMilli(), result.price(), THEORETICAL);
+                    yield new TimeAndPrice(Timestamp.now(), result.price(), THEORETICAL);
                 }
                 yield TimeAndPrice.createInvalidPrice();
             }
@@ -103,20 +101,20 @@ public class PriceSnapshotCalculator {
         };
     }
 
-    public record TimeAndPrice(long timeOfPriceMs, Price price, PriceType priceType) {
+    public record TimeAndPrice(Timestamp timestamp, Price price, PriceType priceType) {
         boolean isValid() {
             return price != Price.EMPTY;
         }
 
-        public TimeAndPrice from(long timeOfPrice, Price price) {
-            if (timeOfPrice < this.timeOfPriceMs) {
+        public TimeAndPrice from(Timestamp timestamp, Price price) {
+            if (timestamp.isBefore(this.timestamp)) {
                 return this;
             }
-            return new TimeAndPrice(timeOfPrice, price, priceType);
+            return new TimeAndPrice(timestamp, price, priceType);
         }
 
         public static TimeAndPrice createInvalidPrice() {
-            return new TimeAndPrice(0, Price.EMPTY, null);
+            return new TimeAndPrice(Timestamp.from(0), Price.EMPTY, null);
         }
     }
 }
