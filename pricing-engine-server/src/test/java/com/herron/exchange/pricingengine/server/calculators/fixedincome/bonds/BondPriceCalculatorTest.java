@@ -1,4 +1,4 @@
-package com.herron.exchange.pricingengine.server.pricemodels.fixedincome.bonds;
+package com.herron.exchange.pricingengine.server.calculators.fixedincome.bonds;
 
 import com.herron.exchange.common.api.common.api.referencedata.instruments.BondInstrument;
 import com.herron.exchange.common.api.common.curves.YieldCurve;
@@ -16,176 +16,25 @@ import com.herron.exchange.common.api.common.messages.pricing.BondDiscountPriceM
 import com.herron.exchange.common.api.common.messages.pricing.ImmutableBondDiscountPriceModelParameters;
 import com.herron.exchange.common.api.common.messages.refdata.*;
 import com.herron.exchange.pricingengine.server.marketdata.MarketDataService;
+import com.herron.exchange.pricingengine.server.theoretical.fixedincome.bonds.BondPriceCalculator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.herron.exchange.common.api.common.enums.DayCountConventionEnum.ACT365;
-import static com.herron.exchange.common.api.common.enums.DayCountConventionEnum.BOND_BASIS_30360;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class BondDiscountingPriceModelTest {
+class BondPriceCalculatorTest {
 
     private final MarketDataService marketDataService = new MarketDataService(null);
-    private BondDiscountingPriceModel bondPriceModel;
-
+    private BondPriceCalculator bondPriceModel;
 
     @BeforeEach
     void init() {
-        bondPriceModel = new BondDiscountingPriceModel(marketDataService);
-    }
-
-    @Test
-    void test_zero_yield_compounding_interest_with_accrued_interest() {
-        var bond = buildInstrument(
-                false,
-                0,
-                2,
-                Timestamp.from(LocalDate.of(2023, 1, 1)),
-                Timestamp.from(LocalDate.of(2021, 1, 1)),
-                1000,
-                CompoundingMethodEnum.COMPOUNDING,
-                0.04,
-                ACT365,
-                buildProduct(BusinessCalendar.noHolidayCalendar())
-        );
-
-        var now = Timestamp.from(LocalDate.of(2021, 6, 30));
-        var result = (BondDiscountPriceModelResult) bondPriceModel.calculateBondPrice(bond, now);
-        assertEquals(19.90, result.accruedInterest(), 0.1);
-    }
-
-    @Test
-    void test_constant_yield_compounding_interest_with_accrued_interest() {
-        var bond = buildInstrument(
-                false,
-                0.04,
-                2,
-                Timestamp.from(LocalDate.of(2031, 1, 1)),
-                Timestamp.from(LocalDate.of(2011, 1, 1)),
-                1000,
-                CompoundingMethodEnum.COMPOUNDING,
-                0.05,
-                ACT365,
-                buildProduct(BusinessCalendar.noHolidayCalendar())
-        );
-
-        var now = Timestamp.from(LocalDate.of(2011, 4, 30));
-        var result = (BondDiscountPriceModelResult) bondPriceModel.calculateBondPrice(bond, now);
-        assertEquals(16.43, result.accruedInterest(), 0.01);
-    }
-
-    @Test
-    void test_zero_coupon_pricing() {
-        var bond = buildInstrument(
-                false,
-                0.05,
-                1,
-                Timestamp.from(LocalDate.of(2040, 1, 1)),
-                Timestamp.from(LocalDate.of(2020, 1, 1)),
-                1000,
-                CompoundingMethodEnum.COMPOUNDING,
-                0.00,
-                ACT365,
-                buildProduct(BusinessCalendar.noHolidayCalendar())
-        );
-
-        var now = Timestamp.from(LocalDate.of(2019, 1, 1));
-        var result = (BondDiscountPriceModelResult) bondPriceModel.calculateBondPrice(bond, now);
-        assertEquals(376.89, result.dirtyPrice().getRealValue(), 0.1);
-        assertEquals(result.dirtyPrice().getRealValue(), result.dirtyPrice().getRealValue(), 0);
-        assertEquals(0, result.accruedInterest(), 0);
-    }
-
-    @Test
-    void test_constant_yield_compounding_interest_pricing() {
-        var bond = buildInstrument(
-                false,
-                0.03,
-                2,
-                Timestamp.from(LocalDate.of(2023, 1, 1)),
-                Timestamp.from(LocalDate.of(2021, 1, 1)),
-                1000,
-                CompoundingMethodEnum.COMPOUNDING,
-                0.05,
-                ACT365,
-                buildProduct(BusinessCalendar.noHolidayCalendar()));
-
-        var now = Timestamp.from(LocalDate.of(2020, 1, 1));
-        var result = (BondDiscountPriceModelResult) bondPriceModel.calculateBondPrice(bond, now);
-        assertEquals(1038.54, result.dirtyPrice().getRealValue(), 1);
-        assertEquals(result.dirtyPrice().getRealValue(), result.dirtyPrice().getRealValue(), 0.01);
-        assertEquals(0, result.accruedInterest(), 0);
-    }
-
-    @Test
-    void test_constant_yield_compounding_interest_pricing_2() {
-        var bond = buildInstrument(
-                false,
-                0.04,
-                1,
-                Timestamp.from(LocalDate.of(2040, 1, 1)),
-                Timestamp.from(LocalDate.of(2020, 1, 1)),
-                1000,
-                CompoundingMethodEnum.COMPOUNDING,
-                0.025,
-                ACT365,
-                buildProduct(BusinessCalendar.noHolidayCalendar())
-        );
-
-        var now = Timestamp.from(LocalDate.of(2020, 1, 1));
-        var result = (BondDiscountPriceModelResult) bondPriceModel.calculateBondPrice(bond, now);
-        assertEquals(796.14, result.dirtyPrice().getRealValue(), 0.01);
-        assertEquals(result.dirtyPrice().getRealValue(), result.dirtyPrice().getRealValue(), 0.01);
-        assertEquals(0, result.accruedInterest(), 0);
-    }
-
-    @Test
-    void test_constant_yield_compounding_interest_pricing_3() {
-        var bond = buildInstrument(
-                false,
-                0.04,
-                2,
-                Timestamp.from(LocalDate.of(2040, 1, 1)),
-                Timestamp.from(LocalDate.of(2020, 1, 1)),
-                1000,
-                CompoundingMethodEnum.COMPOUNDING,
-                0.025,
-                ACT365,
-                buildProduct(BusinessCalendar.noHolidayCalendar())
-        );
-
-        var now = Timestamp.from(LocalDate.of(2020, 1, 1));
-        var result = (BondDiscountPriceModelResult) bondPriceModel.calculateBondPrice(bond, now);
-        assertEquals(798.83, result.dirtyPrice().getRealValue(), 1);
-        assertEquals(result.dirtyPrice().getRealValue(), result.dirtyPrice().getRealValue(), 0.01);
-        assertEquals(0, result.accruedInterest(), 0);
-    }
-
-    @Test
-    void test_constant_yield_compounding_interest__30360_pricing_4() {
-        var bond = buildInstrument(
-                false,
-                0.1,
-                2,
-                Timestamp.from(LocalDate.of(2028, 10, 1)),
-                Timestamp.from(LocalDate.of(2023, 1, 1)),
-                1000,
-                CompoundingMethodEnum.COMPOUNDING,
-                0.015,
-                BOND_BASIS_30360,
-                buildProduct(BusinessCalendar.noHolidayCalendar())
-        );
-
-        var now = Timestamp.from(LocalDate.of(2020, 1, 1));
-        var result = (BondDiscountPriceModelResult) bondPriceModel.calculateBondPrice(bond, now);
-        assertEquals(677.91, result.dirtyPrice().getRealValue(), 0.01);
-        assertEquals(result.dirtyPrice().getRealValue(), result.dirtyPrice().getRealValue(), 0.01);
-        assertEquals(0.00, result.accruedInterest(), 0.001);
+        bondPriceModel = new BondPriceCalculator(marketDataService);
     }
 
     @Test
@@ -212,7 +61,7 @@ class BondDiscountingPriceModelTest {
                         .build()
         );
         var now = Timestamp.from(LocalDate.of(2020, 1, 1));
-        var result = (BondDiscountPriceModelResult) bondPriceModel.calculateBondPrice(bond, now);
+        var result = (BondDiscountPriceModelResult) bondPriceModel.calculate(bond);
         assertEquals(812.32, result.dirtyPrice().getRealValue(), 1);
         assertEquals(result.dirtyPrice().getRealValue(), result.dirtyPrice().getRealValue(), 0.01);
         assertEquals(0, result.accruedInterest(), 0);

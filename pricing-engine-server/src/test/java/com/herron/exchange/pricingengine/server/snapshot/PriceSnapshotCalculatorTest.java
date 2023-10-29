@@ -10,8 +10,8 @@ import com.herron.exchange.common.api.common.messages.trading.ImmutablePriceQuot
 import com.herron.exchange.common.api.common.messages.trading.ImmutableTrade;
 import com.herron.exchange.common.api.common.messages.trading.PriceQuote;
 import com.herron.exchange.common.api.common.messages.trading.Trade;
-import com.herron.exchange.pricingengine.server.pricemodels.TheoreticalPriceCalculator;
-import com.herron.exchange.pricingengine.server.pricemodels.fixedincome.bonds.BondDiscountingPriceModel;
+import com.herron.exchange.pricingengine.server.theoretical.TheoreticalPriceCalculator;
+import com.herron.exchange.pricingengine.server.theoretical.fixedincome.bonds.BondPriceCalculator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 class PriceSnapshotCalculatorTest {
 
     private PriceSnapshotCalculator calculator;
-    private TheoreticalPriceCalculator theoreticalPriceCalculator = new TheoreticalPriceCalculator(new BondDiscountingPriceModel(null));
+    private TheoreticalPriceCalculator theoreticalPriceCalculator = new TheoreticalPriceCalculator(new BondPriceCalculator(null));
 
     @BeforeEach
     void before() {

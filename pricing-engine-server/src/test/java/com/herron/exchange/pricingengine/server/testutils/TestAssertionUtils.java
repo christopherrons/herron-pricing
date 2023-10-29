@@ -27,7 +27,7 @@ public class TestAssertionUtils {
         }
     }
 
-    public static void assertDouble(final double expected, final double acutal, final double delta) {
-        Assertions.assertEquals(expected, acutal, delta);
+    public static void assertDouble(final double expected, final double actual, final double delta) {
+        Assertions.assertEquals(expected, actual, delta);
     }
 }

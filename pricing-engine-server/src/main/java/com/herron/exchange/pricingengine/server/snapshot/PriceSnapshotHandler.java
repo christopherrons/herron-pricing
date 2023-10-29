@@ -13,7 +13,7 @@ import com.herron.exchange.common.api.common.messages.marketdata.entries.MarketD
 import com.herron.exchange.common.api.common.messages.trading.PriceQuote;
 import com.herron.exchange.common.api.common.messages.trading.Trade;
 import com.herron.exchange.common.api.common.wrappers.ThreadWrapper;
-import com.herron.exchange.pricingengine.server.pricemodels.TheoreticalPriceCalculator;
+import com.herron.exchange.pricingengine.server.theoretical.TheoreticalPriceCalculator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

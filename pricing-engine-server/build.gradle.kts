@@ -11,8 +11,10 @@ dependencies {
     // Internal Libs
     implementation(libs.common.api)
     implementation(libs.common)
+    implementation(libs.integration.api)
     implementation(libs.integrations)
-    implementation(libs.integration)
+    implementation(libs.quantlib.api)
+    implementation(libs.quantlib)
 
     // External Test Libs
     testImplementation(testlibs.junit.jupiter.api)

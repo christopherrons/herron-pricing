@@ -12,10 +12,9 @@ import com.herron.exchange.common.api.common.messages.marketdata.entries.MarketD
 import com.herron.exchange.common.api.common.messages.marketdata.statickeys.ImmutableMarketDataPriceStaticKey;
 import com.herron.exchange.common.api.common.messages.trading.PriceQuote;
 import com.herron.exchange.common.api.common.messages.trading.Trade;
-import com.herron.exchange.pricingengine.server.pricemodels.TheoreticalPriceCalculator;
+import com.herron.exchange.pricingengine.server.theoretical.TheoreticalPriceCalculator;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
 import static com.herron.exchange.common.api.common.enums.PriceType.*;
@@ -30,7 +29,6 @@ public class PriceSnapshotCalculator {
     private TimeAndPrice lastPrice = new TimeAndPrice(Timestamp.from(0), Price.EMPTY, LAST_PRICE);
     private TimeAndPrice bidPrice = new TimeAndPrice(Timestamp.from(0), Price.EMPTY, BID_PRICE);
     private TimeAndPrice askPrice = new TimeAndPrice(Timestamp.from(0), Price.EMPTY, ASK_PRICE);
-    private TimeAndPrice previousSettlementPrice = new TimeAndPrice(Timestamp.from(0), Price.EMPTY, SETTLEMENT);
 
     public PriceSnapshotCalculator(Instrument instrument, TheoreticalPriceCalculator priceCalculator) {
         this.instrument = instrument;
@@ -74,7 +72,7 @@ public class PriceSnapshotCalculator {
                 return timeAndPrice;
             }
         }
-        return previousSettlementPrice;
+        return null;
     }
 
     private TimeAndPrice getPrice(PriceType priceType) {

@@ -1,6 +1,7 @@
 # Pricing Engine
 
-The Pricing Engine provides prices for all types of instruments by using market data and theoretical calculations.
+The Pricing Engine provides real-time and historical prices for all types of instruments by using market data and
+theoretical calculations.
 
 ## Table of Content
 

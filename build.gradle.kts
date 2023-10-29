@@ -68,8 +68,10 @@ dependencies {
 	// Internal Libs
 	implementation(libs.common.api)
 	implementation(libs.common)
+	implementation(libs.integration.api)
 	implementation(libs.integrations)
-	implementation(libs.integration)
+	implementation(libs.quantlib.api)
+	implementation(libs.quantlib)
 
 	// External Libs
 	implementation(libs.spring.boot.starter.web)
