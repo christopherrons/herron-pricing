@@ -13,6 +13,7 @@ import com.herron.exchange.common.api.common.messages.marketdata.response.Market
 import com.herron.exchange.common.api.common.messages.marketdata.response.MarketDataYieldCurveResponse;
 import com.herron.exchange.pricingengine.server.marketdata.external.ExternalMarketDataHandler;
 
+import java.time.LocalDate;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -29,6 +30,7 @@ public class MarketDataService {
 
     public void init() {
         externalMarketDataHandler.getPreviousDaySettlementPrices().forEach(this::addEntry);
+        externalMarketDataHandler.getYieldCurves(LocalDate.now().minusDays(50), LocalDate.now()).forEach(this::addEntry);
     }
 
     public void addEntry(MarketDataEntry entry) {

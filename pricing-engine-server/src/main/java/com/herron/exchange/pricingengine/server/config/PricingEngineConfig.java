@@ -6,6 +6,8 @@ import com.herron.exchange.common.api.common.kafka.KafkaConsumerClient;
 import com.herron.exchange.common.api.common.mapping.DefaultMessageFactory;
 import com.herron.exchange.integrations.eurex.EurexReferenceDataApiClient;
 import com.herron.exchange.integrations.eurex.model.EurexApiClientProperties;
+import com.herron.exchange.integrations.nasdaq.NasdaqYieldCurveClient;
+import com.herron.exchange.integrations.nasdaq.model.NasdaqDataLinkApiClientProperties;
 import com.herron.exchange.pricingengine.server.PricingEngine;
 import com.herron.exchange.pricingengine.server.PricingEngineBootloader;
 import com.herron.exchange.pricingengine.server.consumers.ReferenceDataConsumer;
@@ -14,6 +16,7 @@ import com.herron.exchange.pricingengine.server.consumers.TradeDataConsumer;
 import com.herron.exchange.pricingengine.server.marketdata.MarketDataService;
 import com.herron.exchange.pricingengine.server.marketdata.external.ExternalMarketDataHandler;
 import com.herron.exchange.pricingengine.server.marketdata.external.eurex.EurexPreviousDaySettlementHandler;
+import com.herron.exchange.pricingengine.server.marketdata.external.nasdaq.NasdaqYieldCurveHandler;
 import com.herron.exchange.pricingengine.server.theoretical.TheoreticalPriceCalculator;
 import com.herron.exchange.pricingengine.server.theoretical.derivatives.futures.FuturesCalculator;
 import com.herron.exchange.pricingengine.server.theoretical.derivatives.options.OptionCalculator;
@@ -64,8 +67,25 @@ public class PricingEngineConfig {
     }
 
     @Bean
-    public ExternalMarketDataHandler externalMarketDataHandler(EurexPreviousDaySettlementHandler eurexPreviousDaySettlementHandler) {
-        return new ExternalMarketDataHandler(eurexPreviousDaySettlementHandler);
+    public NasdaqDataLinkApiClientProperties nasdaqDataLinkApiClientProperties(@Value("${market-data.nasdaq.eurex.api-key}") String apiKey,
+                                                                               @Value("${market-data.external.nasdaq.api-url}") String url) {
+        return new NasdaqDataLinkApiClientProperties(url, apiKey);
+    }
+
+    @Bean
+    public NasdaqYieldCurveClient nasdaqYieldCurveClient(NasdaqDataLinkApiClientProperties nasdaqDataLinkApiClientProperties) {
+        return new NasdaqYieldCurveClient(nasdaqDataLinkApiClientProperties);
+    }
+
+    @Bean
+    public NasdaqYieldCurveHandler nasdaqYieldCurveHandler(NasdaqYieldCurveClient nasdaqYieldCurveClient) {
+        return new NasdaqYieldCurveHandler(nasdaqYieldCurveClient);
+    }
+
+    @Bean
+    public ExternalMarketDataHandler externalMarketDataHandler(EurexPreviousDaySettlementHandler eurexPreviousDaySettlementHandler,
+                                                               NasdaqYieldCurveHandler nasdaqYieldCurveHandler) {
+        return new ExternalMarketDataHandler(eurexPreviousDaySettlementHandler, nasdaqYieldCurveHandler);
     }
 
     @Bean
