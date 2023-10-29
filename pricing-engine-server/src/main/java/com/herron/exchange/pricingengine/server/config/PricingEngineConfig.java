@@ -12,8 +12,8 @@ import com.herron.exchange.pricingengine.server.consumers.ReferenceDataConsumer;
 import com.herron.exchange.pricingengine.server.consumers.TopOfBookConsumer;
 import com.herron.exchange.pricingengine.server.consumers.TradeDataConsumer;
 import com.herron.exchange.pricingengine.server.marketdata.MarketDataService;
-import com.herron.exchange.pricingengine.server.marketdata.external.EurexPreviousDaySettlementHandler;
 import com.herron.exchange.pricingengine.server.marketdata.external.ExternalMarketDataHandler;
+import com.herron.exchange.pricingengine.server.marketdata.external.eurex.EurexPreviousDaySettlementHandler;
 import com.herron.exchange.pricingengine.server.theoretical.TheoreticalPriceCalculator;
 import com.herron.exchange.pricingengine.server.theoretical.derivatives.futures.FuturesCalculator;
 import com.herron.exchange.pricingengine.server.theoretical.derivatives.options.OptionCalculator;
@@ -47,9 +47,9 @@ public class PricingEngineConfig {
     }
 
     @Bean
-    public EurexApiClientProperties eurexApiClientProperties(@Value("${reference-data.external.eurex.api-key}") String apiKey,
-                                                             @Value("${reference-data.external.eurex.api-url}") String url,
-                                                             @Value("${reference-data.external.eurex.contractRequestLimit}") int contractRequestLimit) {
+    public EurexApiClientProperties eurexApiClientProperties(@Value("${market-data.external.eurex.api-key}") String apiKey,
+                                                             @Value("${market-data.external.eurex.api-url}") String url,
+                                                             @Value("${market-data.external.eurex.contractRequestLimit}") int contractRequestLimit) {
         return new EurexApiClientProperties(url, apiKey, contractRequestLimit);
     }
 

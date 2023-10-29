@@ -1,4 +1,4 @@
-package com.herron.exchange.pricingengine.server.marketdata.external;
+package com.herron.exchange.pricingengine.server.marketdata.external.eurex;
 
 import com.herron.exchange.common.api.common.enums.PriceType;
 import com.herron.exchange.common.api.common.messages.common.Price;
