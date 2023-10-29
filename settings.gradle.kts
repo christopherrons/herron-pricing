@@ -17,7 +17,7 @@ dependencyResolutionManagement {
             library("common", "com.herron.exchange:common:1.0.252")
             library("integration.api", "com.herron.exchange:integration-api:1.0.25")
             library("integrations", "com.herron.exchange:integrations:1.0.25")
-            library("quantlib.api", "com.herron.exchange:quantlib.api:1.0.2")
+            library("quantlib.api", "com.herron.exchange:quantlib-api:1.0.2")
             library("quantlib", "com.herron.exchange:quantlib:1.0.2")
         }
 

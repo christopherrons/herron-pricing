@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 class PriceSnapshotCalculatorTest {
 
     private PriceSnapshotCalculator calculator;
-    private TheoreticalPriceCalculator theoreticalPriceCalculator = new TheoreticalPriceCalculator(new BondPriceCalculator(null));
+    private TheoreticalPriceCalculator theoreticalPriceCalculator = new TheoreticalPriceCalculator(new BondPriceCalculator(null), null, null);
 
     @BeforeEach
     void before() {

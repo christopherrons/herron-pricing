@@ -21,14 +21,14 @@ public class BondPriceCalculator {
         this.marketDataService = marketDataService;
     }
 
-    public PriceModelResult calculate(BondInstrument instrument) {
+    public PriceModelResult calculate(BondInstrument instrument, Timestamp valuationTime) {
         return switch (instrument.priceModel()) {
-            case BOND_DISCOUNT -> calculateWithDiscountModel(instrument, Timestamp.now());
+            case BOND_DISCOUNT -> calculateWithDiscountModel(instrument, valuationTime);
             default -> FailedPriceModelResult.createFailedResult(String.format("Bond price model %s not supported.", instrument));
         };
     }
 
-    public PriceModelResult calculateWithDiscountModel(BondInstrument instrument, Timestamp valuationTime) {
+    private PriceModelResult calculateWithDiscountModel(BondInstrument instrument, Timestamp valuationTime) {
         if (instrument.priceModelParameters().calculateWithCurve()) {
             return calculateWithCurve(instrument, valuationTime);
         }

@@ -61,7 +61,7 @@ class BondPriceCalculatorTest {
                         .build()
         );
         var now = Timestamp.from(LocalDate.of(2020, 1, 1));
-        var result = (BondDiscountPriceModelResult) bondPriceModel.calculate(bond);
+        var result = (BondDiscountPriceModelResult) bondPriceModel.calculate(bond, now);
         assertEquals(812.32, result.dirtyPrice().getRealValue(), 1);
         assertEquals(result.dirtyPrice().getRealValue(), result.dirtyPrice().getRealValue(), 0.01);
         assertEquals(0, result.accruedInterest(), 0);

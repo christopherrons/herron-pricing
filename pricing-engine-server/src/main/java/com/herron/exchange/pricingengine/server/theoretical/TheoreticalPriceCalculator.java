@@ -5,6 +5,7 @@ import com.herron.exchange.common.api.common.api.referencedata.instruments.BondI
 import com.herron.exchange.common.api.common.api.referencedata.instruments.FutureInstrument;
 import com.herron.exchange.common.api.common.api.referencedata.instruments.Instrument;
 import com.herron.exchange.common.api.common.api.referencedata.instruments.OptionInstrument;
+import com.herron.exchange.common.api.common.messages.common.Timestamp;
 import com.herron.exchange.common.api.common.messages.pricing.FailedPriceModelResult;
 import com.herron.exchange.pricingengine.server.theoretical.derivatives.futures.FuturesCalculator;
 import com.herron.exchange.pricingengine.server.theoretical.derivatives.options.OptionCalculator;
@@ -26,17 +27,17 @@ public class TheoreticalPriceCalculator {
 
     public PriceModelResult calculatePrice(Instrument instrument) {
         try {
-            return calculate(instrument);
+            return calculate(instrument, Timestamp.now());
         } catch (Exception e) {
             return createFailedResult(String.format("Unhandled exception when calculating result for instrument %s: %s", instrument, e));
         }
     }
 
-    private PriceModelResult calculate(Instrument instrument) {
+    private PriceModelResult calculate(Instrument instrument, Timestamp valuationTime) {
         return switch (instrument.instrumentType()) {
-            case BILL, BOND, PERPETUAL_BOND -> bondPriceCalculator.calculate((BondInstrument) instrument);
-            case OPTION -> optionCalculator.calculate((OptionInstrument) instrument);
-            case FUTURE -> futuresCalculator.calculate((FutureInstrument) instrument);
+            case BILL, BOND, PERPETUAL_BOND -> bondPriceCalculator.calculate((BondInstrument) instrument, valuationTime);
+            case OPTION -> optionCalculator.calculate((OptionInstrument) instrument, valuationTime);
+            case FUTURE -> futuresCalculator.calculate((FutureInstrument) instrument, valuationTime);
             default -> createFailedResult(String.format("Instrument type %s not supported.", instrument));
         };
     }
