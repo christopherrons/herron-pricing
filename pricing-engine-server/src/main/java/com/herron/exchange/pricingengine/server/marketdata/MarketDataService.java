@@ -1,15 +1,18 @@
 package com.herron.exchange.pricingengine.server.marketdata;
 
 import com.herron.exchange.common.api.common.api.marketdata.MarketDataEntry;
+import com.herron.exchange.common.api.common.api.marketdata.MarketDataRequest;
 import com.herron.exchange.common.api.common.api.marketdata.StaticKey;
 import com.herron.exchange.common.api.common.messages.marketdata.entries.MarketDataPrice;
 import com.herron.exchange.common.api.common.messages.marketdata.entries.MarketDataYieldCurve;
+import com.herron.exchange.common.api.common.messages.marketdata.requests.MarketDataPriceRequest;
 import com.herron.exchange.common.api.common.messages.marketdata.requests.MarketDataYieldCurveRequest;
+import com.herron.exchange.common.api.common.messages.marketdata.response.ImmutableMarketDataPriceResponse;
 import com.herron.exchange.common.api.common.messages.marketdata.response.ImmutableMarketDataYieldCurveResponse;
+import com.herron.exchange.common.api.common.messages.marketdata.response.MarketDataPriceResponse;
 import com.herron.exchange.common.api.common.messages.marketdata.response.MarketDataYieldCurveResponse;
 import com.herron.exchange.pricingengine.server.marketdata.external.ExternalMarketDataHandler;
 
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -24,26 +27,41 @@ public class MarketDataService {
         this.externalMarketDataHandler = externalMarketDataHandler;
     }
 
-    public List<MarketDataPrice> getPreviousDaySettlementPrices() {
-        return externalMarketDataHandler.getPreviousDaySettlementPrices();
+    public void init() {
+        externalMarketDataHandler.getPreviousDaySettlementPrices().forEach(this::addEntry);
     }
 
     public void addEntry(MarketDataEntry entry) {
         keyToRepository.computeIfAbsent(entry.staticKey(), MarketDataRepository::new).addEntry(entry);
     }
 
-    public MarketDataYieldCurveResponse getEntry(MarketDataYieldCurveRequest request) {
-        if (!keyToRepository.containsKey(request.staticKey())) {
-            return MarketDataYieldCurveResponse.createErrorResponse(String.format("No matching key found: %s.", request));
-        }
-        var entry = keyToRepository.get(request.staticKey()).getEntry(request);
+    public MarketDataPriceResponse getMarketDataPrice(MarketDataPriceRequest request) {
+        var entry = getEntry(request);
         if (entry == null) {
-            return MarketDataYieldCurveResponse.createErrorResponse(String.format("No matching entries found: %s.", request));
+            return MarketDataPriceResponse.createErrorResponse(String.format("No matching entry found: %s.", request));
         }
+        return ImmutableMarketDataPriceResponse.builder()
+                .status(OK)
+                .marketDataPrice((MarketDataPrice) entry)
+                .build();
+    }
 
+    public MarketDataYieldCurveResponse getYieldCurve(MarketDataYieldCurveRequest request) {
+        var entry = getEntry(request);
+        if (entry == null) {
+            return MarketDataYieldCurveResponse.createErrorResponse(String.format("No matching entry found: %s.", request));
+        }
         return ImmutableMarketDataYieldCurveResponse.builder()
                 .status(OK)
                 .yieldCurveEntry((MarketDataYieldCurve) entry)
                 .build();
+    }
+
+    private MarketDataEntry getEntry(MarketDataRequest request) {
+        if (!keyToRepository.containsKey(request.staticKey())) {
+            return null;
+        }
+
+        return keyToRepository.get(request.staticKey()).getEntry(request);
     }
 }

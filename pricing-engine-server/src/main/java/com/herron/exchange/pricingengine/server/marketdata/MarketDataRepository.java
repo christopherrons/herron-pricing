@@ -21,7 +21,7 @@ public class MarketDataRepository {
 
     public synchronized MarketDataEntry getEntry(MarketDataRequest request) {
         return switch (request.timeFilter()) {
-            case LATEST -> checkLastest();
+            case LATEST -> checkLatest();
             case MATCH_DATE -> checkMatchDate(request);
             case MATCH_TIME -> checkMatchTime(request);
             case MATCH_OR_FIRST_PRIOR -> checkMatchOrFirstPrior(request);
@@ -29,7 +29,7 @@ public class MarketDataRepository {
         };
     }
 
-    private MarketDataEntry checkLastest() {
+    private MarketDataEntry checkLatest() {
         return dateToEntry.isEmpty() ? null : dateToEntry.firstEntry().getValue().first();
     }
 
@@ -56,37 +56,35 @@ public class MarketDataRepository {
         var match = checkMatchDateAndTime(request);
         var requestDate = request.timeComponentKey().date();
         if (match == null) {
-            var priorDate = requestDate;
-            for (var date : dateToEntry.keySet()) {
-                if (dateToEntry.containsKey(LocalDate.now())) {
-                    priorDate = date;
-                    break;
-                }
-            }
-            if (priorDate == null) {
+            var priorOrAtRequestDateEntry = dateToEntry.floorEntry(requestDate);
+
+            if (priorOrAtRequestDateEntry == null) {
                 return null;
             }
 
-            if (priorDate.equals(requestDate)) {
-                for (var entry : dateToEntry.get(priorDate)) {
+            var priorOrAtRequestDate = priorOrAtRequestDateEntry.getKey();
+            var priorOrAtRequestDateEntries = priorOrAtRequestDateEntry.getValue();
+
+            if (priorOrAtRequestDate.equals(requestDate)) {
+                for (var entry : priorOrAtRequestDateEntries) {
                     if (entry.timeComponentKey().time().isBefore(request.timeComponentKey().time())) {
                         return entry;
                     }
                 }
 
-            } else if (priorDate.isBefore(requestDate)) {
-                return dateToEntry.get(priorDate).first();
+            } else if (priorOrAtRequestDate.isBefore(requestDate)) {
+                return priorOrAtRequestDateEntries.first();
             }
         }
         return null;
     }
 
     private MarketDataEntry checkMatchDateAndTime(MarketDataRequest request) {
-        var now = LocalDate.now();
-        if (!dateToEntry.containsKey(now)) {
+        var requestDate = request.timeComponentKey().date();
+        if (!dateToEntry.containsKey(requestDate)) {
             return null;
         }
-        for (var item : dateToEntry.get(now)) {
+        for (var item : dateToEntry.get(requestDate)) {
             if (item.timeComponentKey().time().equals(request.timeComponentKey().time())) {
                 return item;
             }

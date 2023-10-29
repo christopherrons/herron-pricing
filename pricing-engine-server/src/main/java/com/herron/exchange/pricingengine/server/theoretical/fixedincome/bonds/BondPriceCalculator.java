@@ -51,7 +51,7 @@ public class BondPriceCalculator {
                 .timeComponentKey(ImmutableDefaultTimeComponentKey.builder().timeOfEvent(Timestamp.now()).build())
                 .build();
 
-        MarketDataYieldCurveResponse response = marketDataService.getEntry(request);
+        MarketDataYieldCurveResponse response = marketDataService.getYieldCurve(request);
         if (response.status() == Status.ERROR || response.yieldCurveEntry() == null) {
             return FailedPriceModelResult.createFailedResult("Market data error: " + response.error());
         }

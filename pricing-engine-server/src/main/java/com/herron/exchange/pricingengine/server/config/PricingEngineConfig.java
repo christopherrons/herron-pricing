@@ -8,16 +8,16 @@ import com.herron.exchange.integrations.eurex.EurexReferenceDataApiClient;
 import com.herron.exchange.integrations.eurex.model.EurexApiClientProperties;
 import com.herron.exchange.pricingengine.server.PricingEngine;
 import com.herron.exchange.pricingengine.server.PricingEngineBootloader;
-import com.herron.exchange.pricingengine.server.theoretical.TheoreticalPriceCalculator;
-import com.herron.exchange.pricingengine.server.theoretical.derivatives.futures.FuturesCalculator;
-import com.herron.exchange.pricingengine.server.theoretical.derivatives.options.OptionCalculator;
-import com.herron.exchange.pricingengine.server.theoretical.fixedincome.bonds.BondPriceCalculator;
 import com.herron.exchange.pricingengine.server.consumers.ReferenceDataConsumer;
 import com.herron.exchange.pricingengine.server.consumers.TopOfBookConsumer;
 import com.herron.exchange.pricingengine.server.consumers.TradeDataConsumer;
 import com.herron.exchange.pricingengine.server.marketdata.MarketDataService;
 import com.herron.exchange.pricingengine.server.marketdata.external.EurexPreviousDaySettlementHandler;
 import com.herron.exchange.pricingengine.server.marketdata.external.ExternalMarketDataHandler;
+import com.herron.exchange.pricingengine.server.theoretical.TheoreticalPriceCalculator;
+import com.herron.exchange.pricingengine.server.theoretical.derivatives.futures.FuturesCalculator;
+import com.herron.exchange.pricingengine.server.theoretical.derivatives.options.OptionCalculator;
+import com.herron.exchange.pricingengine.server.theoretical.fixedincome.bonds.BondPriceCalculator;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -90,10 +90,11 @@ public class PricingEngineConfig {
 
     @Bean(initMethod = "init")
     public PricingEngineBootloader pricingEngineBootloader(KafkaBroadcastHandler kafkaBroadcastHandler,
+                                                           TheoreticalPriceCalculator theoreticalPriceCalculator,
                                                            MarketDataService marketDataService,
                                                            ReferenceDataConsumer referenceDataConsumer,
                                                            TradeDataConsumer tradeDataConsumer,
                                                            TopOfBookConsumer topOfBookConsumer) {
-        return new PricingEngineBootloader(marketDataService, kafkaBroadcastHandler, referenceDataConsumer, topOfBookConsumer, tradeDataConsumer);
+        return new PricingEngineBootloader(marketDataService, theoreticalPriceCalculator, kafkaBroadcastHandler, referenceDataConsumer, topOfBookConsumer, tradeDataConsumer);
     }
 }
