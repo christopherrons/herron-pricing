@@ -49,7 +49,7 @@ public class BondDiscountingPriceModel {
         var request = ImmutableMarketDataYieldCurveRequest.builder()
                 .staticKey(ImmutableMarketDataYieldCurveStaticKey.builder().curveId(curveId).build())
                 .timeFilter(MarketDataRequestTimeFilter.LATEST)
-                .timeComponentKey(ImmutableDefaultTimeComponentKey.builder().timeOfEvent(LocalDateTime.now()).build())
+                .timeComponentKey(ImmutableDefaultTimeComponentKey.builder().timeOfEvent(Timestamp.now()).build())
                 .build();
 
         MarketDataYieldCurveResponse response = marketDataService.getEntry(request);

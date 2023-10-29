@@ -59,11 +59,10 @@ public class PriceSnapshotCalculator {
             return null;
         }
 
-        LocalDateTime time = timeAndPrice.timestamp.toLocalDateTime();
         return ImmutableMarketDataPrice.builder()
                 .priceType(timeAndPrice.priceType)
                 .staticKey(ImmutableMarketDataPriceStaticKey.builder().instrumentId(instrument.instrumentId()).build())
-                .timeComponentKey(ImmutableDefaultTimeComponentKey.builder().timeOfEvent(time).build())
+                .timeComponentKey(ImmutableDefaultTimeComponentKey.builder().timeOfEvent(timeAndPrice.timestamp).build())
                 .price(timeAndPrice.price)
                 .build();
     }

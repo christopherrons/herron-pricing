@@ -2,6 +2,7 @@ package com.herron.exchange.pricingengine.server.marketdata.external;
 
 import com.herron.exchange.common.api.common.enums.PriceType;
 import com.herron.exchange.common.api.common.messages.common.Price;
+import com.herron.exchange.common.api.common.messages.common.Timestamp;
 import com.herron.exchange.common.api.common.messages.marketdata.ImmutableDefaultTimeComponentKey;
 import com.herron.exchange.common.api.common.messages.marketdata.entries.ImmutableMarketDataPrice;
 import com.herron.exchange.common.api.common.messages.marketdata.entries.MarketDataPrice;
@@ -46,7 +47,7 @@ public class EurexPreviousDaySettlementHandler {
                         ImmutableMarketDataPrice.builder()
                                 .priceType(PriceType.SETTLEMENT)
                                 .staticKey(ImmutableMarketDataPriceStaticKey.builder().instrumentId(contract.isin()).build())
-                                .timeComponentKey(ImmutableDefaultTimeComponentKey.builder().timeOfEvent(previousDate).build())
+                                .timeComponentKey(ImmutableDefaultTimeComponentKey.builder().timeOfEvent(Timestamp.from(previousDate)).build())
                                 .price(Price.create(contract.previousDaySettlementPrice()))
                                 .build()
                 );

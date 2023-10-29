@@ -206,7 +206,7 @@ class BondDiscountingPriceModelTest {
         YieldCurve curve = createTestCurve();
         marketDataService.addEntry(
                 ImmutableMarketDataYieldCurve.builder()
-                        .timeComponentKey(ImmutableDefaultTimeComponentKey.builder().timeOfEvent(LocalDateTime.now()).build())
+                        .timeComponentKey(ImmutableDefaultTimeComponentKey.builder().timeOfEvent(Timestamp.now()).build())
                         .staticKey(ImmutableMarketDataYieldCurveStaticKey.builder().curveId("id").build())
                         .yieldCurve(curve)
                         .build()
