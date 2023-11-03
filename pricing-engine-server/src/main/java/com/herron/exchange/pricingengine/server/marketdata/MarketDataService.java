@@ -3,6 +3,7 @@ package com.herron.exchange.pricingengine.server.marketdata;
 import com.herron.exchange.common.api.common.api.marketdata.MarketDataEntry;
 import com.herron.exchange.common.api.common.api.marketdata.MarketDataRequest;
 import com.herron.exchange.common.api.common.api.marketdata.StaticKey;
+import com.herron.exchange.common.api.common.messages.common.Timestamp;
 import com.herron.exchange.common.api.common.messages.marketdata.entries.MarketDataPrice;
 import com.herron.exchange.common.api.common.messages.marketdata.entries.MarketDataYieldCurve;
 import com.herron.exchange.common.api.common.messages.marketdata.requests.MarketDataPriceRequest;
@@ -16,21 +17,36 @@ import com.herron.exchange.pricingengine.server.marketdata.external.ExternalMark
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static com.herron.exchange.common.api.common.enums.Status.OK;
 
 public class MarketDataService {
 
     private final ExternalMarketDataHandler externalMarketDataHandler;
+    private final ImpliedVolatilityCalculator impliedVolatilityHandler;
     private final Map<StaticKey, MarketDataRepository> keyToRepository = new ConcurrentHashMap<>();
 
     public MarketDataService(ExternalMarketDataHandler externalMarketDataHandler) {
         this.externalMarketDataHandler = externalMarketDataHandler;
+        this.impliedVolatilityHandler = new ImpliedVolatilityCalculator(this);
     }
 
     public void init() {
-        externalMarketDataHandler.getPreviousDaySettlementPrices().forEach(this::addEntry);
-        externalMarketDataHandler.getYieldCurves(LocalDate.now().minusDays(50), LocalDate.now()).forEach(this::addEntry);
+        ExecutorService executor = Executors.newFixedThreadPool(3);
+        Runnable task1 = () -> externalMarketDataHandler.getPreviousDaySettlementPrices().forEach(this::addEntry);
+        Runnable task2 = () -> externalMarketDataHandler.getYieldCurves(LocalDate.now().minusDays(50), LocalDate.now()).forEach(this::addEntry);
+        executor.submit(task1);
+        executor.submit(task2);
+        executor.shutdown();
+        try {
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+        }
+
+        impliedVolatilityHandler.createSurfaces(Timestamp.now());
     }
 
     public void addEntry(MarketDataEntry entry) {

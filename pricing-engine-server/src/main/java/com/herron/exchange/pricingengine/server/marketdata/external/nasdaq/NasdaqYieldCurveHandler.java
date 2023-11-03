@@ -15,7 +15,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public class NasdaqYieldCurveHandler {
-
+    public static final String YIELD_CURVE_ID = "Nasdaq Treasury Yield Curve";
     private final NasdaqYieldCurveClient client;
 
     public NasdaqYieldCurveHandler(NasdaqYieldCurveClient client) {
@@ -34,7 +34,7 @@ public class NasdaqYieldCurveHandler {
                         item.maturityDates(),
                         item.yieldValues()
                 ))
-                .map(parameters -> YieldCurve.create(dataset.id() + "-" + parameters.startDate().toString(), parameters))
+                .map(parameters -> YieldCurve.create(YIELD_CURVE_ID, parameters))
                 .<MarketDataYieldCurve>map(curve ->
                         ImmutableMarketDataYieldCurve.builder()
                                 .timeComponentKey(ImmutableDefaultTimeComponentKey.builder().timeOfEvent(Timestamp.from(curve.getYieldCurveModelParameters().startDate())).build())
