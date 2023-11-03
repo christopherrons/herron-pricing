@@ -19,6 +19,10 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class EurexPreviousDaySettlementHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(EurexPreviousDaySettlementHandler.class);
@@ -34,6 +38,16 @@ public class EurexPreviousDaySettlementHandler {
 
         EurexProductData eurexProductData = client.fetchProductData();
         List<EurexContractData> eurexContractDataList = client.fetchContractData(eurexProductData);
+
+        Map<String, EurexProductData.ProductInfo> productToProductInfo = eurexProductData.data().productInfos().data().stream()
+                .collect(Collectors.toMap(EurexProductData.ProductInfo::product, Function.identity(), (existingValue, newValue) -> existingValue));
+
+        Set<String> underlyingIsin = eurexContractDataList.stream()
+                .flatMap(c -> c.data().contracts().data().stream())
+                .filter(c -> productToProductInfo.containsKey(c.product()))
+                .map(c -> productToProductInfo.get(c.product()).underlyingIsin())
+                .collect(Collectors.toSet());
+
         if (eurexContractDataList.isEmpty()) {
             return List.of();
         }

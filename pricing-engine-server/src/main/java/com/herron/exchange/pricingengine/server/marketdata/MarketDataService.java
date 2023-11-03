@@ -13,6 +13,8 @@ import com.herron.exchange.common.api.common.messages.marketdata.response.Immuta
 import com.herron.exchange.common.api.common.messages.marketdata.response.MarketDataPriceResponse;
 import com.herron.exchange.common.api.common.messages.marketdata.response.MarketDataYieldCurveResponse;
 import com.herron.exchange.pricingengine.server.marketdata.external.ExternalMarketDataHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.util.Map;
@@ -24,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 import static com.herron.exchange.common.api.common.enums.Status.OK;
 
 public class MarketDataService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MarketDataService.class);
 
     private final ExternalMarketDataHandler externalMarketDataHandler;
     private final ImpliedVolatilityCalculator impliedVolatilityHandler;
@@ -35,6 +38,7 @@ public class MarketDataService {
     }
 
     public void init() {
+        LOGGER.info("Init Market Data Repository.");
         ExecutorService executor = Executors.newFixedThreadPool(3);
         Runnable task1 = () -> externalMarketDataHandler.getPreviousDaySettlementPrices().forEach(this::addEntry);
         Runnable task2 = () -> externalMarketDataHandler.getYieldCurves(LocalDate.now().minusDays(50), LocalDate.now()).forEach(this::addEntry);

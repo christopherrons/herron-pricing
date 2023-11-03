@@ -67,7 +67,7 @@ public class PricingEngineConfig {
     }
 
     @Bean
-    public NasdaqDataLinkApiClientProperties nasdaqDataLinkApiClientProperties(@Value("${market-data.nasdaq.eurex.api-key}") String apiKey,
+    public NasdaqDataLinkApiClientProperties nasdaqDataLinkApiClientProperties(@Value("${market-data.external.nasdaq.api-key}") String apiKey,
                                                                                @Value("${market-data.external.nasdaq.api-url}") String url) {
         return new NasdaqDataLinkApiClientProperties(url, apiKey);
     }
@@ -89,7 +89,7 @@ public class PricingEngineConfig {
     }
 
     @Bean
-    public MarketDataService marketDataHandler(ExternalMarketDataHandler externalMarketDataHandler) {
+    public MarketDataService marketDataService(ExternalMarketDataHandler externalMarketDataHandler) {
         return new MarketDataService(externalMarketDataHandler);
     }
 

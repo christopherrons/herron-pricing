@@ -3,7 +3,6 @@ package com.herron.exchange.pricingengine.server.marketdata;
 import com.herron.exchange.common.api.common.api.referencedata.instruments.Instrument;
 import com.herron.exchange.common.api.common.api.referencedata.instruments.OptionInstrument;
 import com.herron.exchange.common.api.common.cache.ReferenceDataCache;
-import com.herron.exchange.common.api.common.enums.InstrumentTypeEnum;
 import com.herron.exchange.common.api.common.enums.MarketDataRequestTimeFilter;
 import com.herron.exchange.common.api.common.messages.common.Price;
 import com.herron.exchange.common.api.common.messages.common.Timestamp;
@@ -35,7 +34,7 @@ public class ImpliedVolatilityCalculator {
 
     public void createSurfaces(Timestamp timestamp) {
         List<OptionInstrument> options = ReferenceDataCache.getCache().getInstruments().stream()
-                .filter(ins -> ins.instrumentType() == InstrumentTypeEnum.OPTION)
+                .filter(OptionInstrument.class::isInstance)
                 .map(OptionInstrument.class::cast)
                 .toList();
 
@@ -44,13 +43,13 @@ public class ImpliedVolatilityCalculator {
         for (var option : options) {
             var optionPrice = requestPrice(option, timestamp);
             if (optionPrice.status() == ERROR) {
-                LOGGER.warn("Removing {} price found.", option);
+                LOGGER.warn("Removing {} price not found.", option);
                 continue;
             }
             var underlying = ReferenceDataCache.getCache().getInstrument(option.underlyingInstrumentId());
             var underlyingPrice = requestPrice(underlying, timestamp);
             if (underlyingPrice.status() == ERROR) {
-                LOGGER.error("Removing {} price found.", underlying);
+                LOGGER.error("Removing {} price not found.", underlying);
                 continue;
             }
 
@@ -73,6 +72,9 @@ public class ImpliedVolatilityCalculator {
     }
 
     private MarketDataPriceResponse requestPrice(Instrument instrument, Timestamp timestamp) {
+        if (instrument == null) {
+            return MarketDataPriceResponse.createErrorResponse("");
+        }
         var request = ImmutableMarketDataPriceRequest.builder()
                 .staticKey(ImmutableMarketDataPriceStaticKey.builder().instrumentId(instrument.instrumentId()).build())
                 .timeComponentKey(ImmutableDefaultTimeComponentKey.builder().timeOfEvent(timestamp).build())
