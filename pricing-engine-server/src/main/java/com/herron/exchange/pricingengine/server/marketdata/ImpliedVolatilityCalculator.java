@@ -14,7 +14,9 @@ import com.herron.exchange.common.api.common.messages.marketdata.response.Market
 import com.herron.exchange.common.api.common.messages.marketdata.response.MarketDataYieldCurveResponse;
 import com.herron.exchange.common.api.common.messages.marketdata.statickeys.ImmutableMarketDataPriceStaticKey;
 import com.herron.exchange.common.api.common.messages.marketdata.statickeys.ImmutableMarketDataYieldCurveStaticKey;
+import com.herron.exchange.common.api.common.parametricmodels.yieldcurve.YieldCurve;
 import com.herron.exchange.pricingengine.server.marketdata.external.nasdaq.NasdaqYieldCurveHandler;
+import com.herron.exchange.quantlib.pricemodels.derivatives.options.ImpliedVolatilityConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +35,7 @@ public class ImpliedVolatilityCalculator {
         this.marketDataService = marketDataService;
     }
 
-    public List<MarketDataImpliedVolatilitySurface> createSurfaces(Timestamp timestamp) {
+    public List<MarketDataImpliedVolatilitySurface> createSurfaces(Timestamp valuationTime) {
         List<OptionInstrument> options = ReferenceDataCache.getCache().getInstruments().stream()
                 .filter(OptionInstrument.class::isInstance)
                 .map(OptionInstrument.class::cast)
@@ -42,13 +44,13 @@ public class ImpliedVolatilityCalculator {
         Map<Instrument, List<OptionInstrument>> underlyingInstrumentToOptions = new HashMap<>();
         Map<Instrument, Price> instrumentToPrice = new HashMap<>();
         for (var option : options) {
-            var optionPrice = requestPrice(option, timestamp);
+            var optionPrice = requestPrice(option, valuationTime);
             if (optionPrice.status() == ERROR) {
                 LOGGER.warn("Removing {} price not found.", option);
                 continue;
             }
             var underlying = ReferenceDataCache.getCache().getInstrument(option.underlyingInstrumentId());
-            var underlyingPrice = requestPrice(underlying, timestamp);
+            var underlyingPrice = requestPrice(underlying, valuationTime);
             if (underlyingPrice.status() == ERROR) {
                 LOGGER.error("Removing {} price not found.", underlying);
                 continue;
@@ -59,9 +61,26 @@ public class ImpliedVolatilityCalculator {
             instrumentToPrice.putIfAbsent(option, optionPrice.marketDataPrice().price());
         }
 
-        var yieldCurve = requestYieldCurve();
-        List<MarketDataImpliedVolatilitySurface> ivSurface = new ArrayList<>();
-        return ivSurface;
+        var yieldCurveResponse = requestYieldCurve();
+        if (yieldCurveResponse.status() == ERROR) {
+            LOGGER.error("Yield curve not found.", yieldCurveResponse);
+            return List.of();
+        }
+        return constructSurfaces(valuationTime, underlyingInstrumentToOptions, instrumentToPrice, yieldCurveResponse.yieldCurveEntry().yieldCurve());
+    }
+
+    private List<MarketDataImpliedVolatilitySurface> constructSurfaces(Timestamp valuationTime,
+                                                                       Map<Instrument, List<OptionInstrument>> underlyingInstrumentToOptions,
+                                                                       Map<Instrument, Price> instrumentToPrice,
+                                                                       YieldCurve yieldCurve) {
+        List<MarketDataImpliedVolatilitySurface> ivSurfaces = new ArrayList<>();
+        for (var entry : underlyingInstrumentToOptions.entrySet()) {
+            var underlying = entry.getKey();
+            var options = entry.getValue();
+            var surface = ImpliedVolatilityConstructor.construct(valuationTime, underlying, options, instrumentToPrice, yieldCurve);
+            ivSurfaces.add(MarketDataImpliedVolatilitySurface.create(valuationTime, underlying.instrumentId(), surface));
+        }
+        return ivSurfaces;
     }
 
     private MarketDataYieldCurveResponse requestYieldCurve() {

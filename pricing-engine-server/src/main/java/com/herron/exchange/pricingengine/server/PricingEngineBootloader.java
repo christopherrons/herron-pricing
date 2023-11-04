@@ -72,7 +72,7 @@ public class PricingEngineBootloader extends Bootloader {
             if (response.status() == OK) {
                 marketDataPrice = response.marketDataPrice();
             } else {
-                var result = theoreticalPriceCalculator.calculatePrice(instrument);
+                var result = theoreticalPriceCalculator.calculatePrice(instrument, Timestamp.now());
                 if (result.status() == ERROR) {
                     continue;
                 }

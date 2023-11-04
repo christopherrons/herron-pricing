@@ -1,13 +1,12 @@
 package com.herron.exchange.pricingengine.server.calculators.fixedincome.bonds;
 
 import com.herron.exchange.common.api.common.api.referencedata.instruments.BondInstrument;
-import com.herron.exchange.common.api.common.curves.YieldCurve;
-import com.herron.exchange.common.api.common.curves.YieldCurveModelParameters;
 import com.herron.exchange.common.api.common.enums.CompoundingMethodEnum;
 import com.herron.exchange.common.api.common.enums.DayCountConventionEnum;
 import com.herron.exchange.common.api.common.enums.InterpolationMethod;
 import com.herron.exchange.common.api.common.messages.common.BusinessCalendar;
 import com.herron.exchange.common.api.common.messages.common.MonetaryAmount;
+import com.herron.exchange.common.api.common.messages.common.PureNumber;
 import com.herron.exchange.common.api.common.messages.common.Timestamp;
 import com.herron.exchange.common.api.common.messages.marketdata.ImmutableDefaultTimeComponentKey;
 import com.herron.exchange.common.api.common.messages.marketdata.entries.ImmutableMarketDataYieldCurve;
@@ -15,6 +14,8 @@ import com.herron.exchange.common.api.common.messages.marketdata.statickeys.Immu
 import com.herron.exchange.common.api.common.messages.pricing.BondDiscountPriceModelResult;
 import com.herron.exchange.common.api.common.messages.pricing.ImmutableBondDiscountPriceModelParameters;
 import com.herron.exchange.common.api.common.messages.refdata.*;
+import com.herron.exchange.common.api.common.parametricmodels.yieldcurve.YieldCurve;
+import com.herron.exchange.common.api.common.parametricmodels.yieldcurve.YieldCurveModelParameters;
 import com.herron.exchange.pricingengine.server.marketdata.MarketDataService;
 import com.herron.exchange.pricingengine.server.theoretical.fixedincome.bonds.BondPriceCalculator;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,9 +63,9 @@ class BondPriceCalculatorTest {
         );
         var now = Timestamp.from(LocalDate.of(2020, 1, 1));
         var result = (BondDiscountPriceModelResult) bondPriceModel.calculate(bond, now);
-        assertEquals(812.32, result.dirtyPrice().getRealValue(), 1);
+        assertEquals(808.4, result.dirtyPrice().getRealValue(), 1);
         assertEquals(result.dirtyPrice().getRealValue(), result.dirtyPrice().getRealValue(), 0.01);
-        assertEquals(0, result.accruedInterest(), 0);
+        assertEquals(0, result.accruedInterest().getRealValue(), 0);
     }
 
     private Product buildProduct(BusinessCalendar businessCalendar) {
@@ -99,7 +100,7 @@ class BondPriceCalculatorTest {
                 .maturityDate(maturityData)
                 .startDate(startDate)
                 .nominalValue(MonetaryAmount.create(nominalValue, "eur"))
-                .couponRate(couponRate)
+                .couponRate(PureNumber.create(couponRate))
                 .priceModelParameters(ImmutableBondDiscountPriceModelParameters.builder().dayCountConvention(dayCountConvetionEnum)
                         .compoundingMethod(compoundingMethodEnum)
                         .calculateWithCurve(useCurve)

@@ -25,9 +25,9 @@ public class TheoreticalPriceCalculator {
         this.futuresCalculator = futuresCalculator;
     }
 
-    public PriceModelResult calculatePrice(Instrument instrument) {
+    public PriceModelResult calculatePrice(Instrument instrument, Timestamp valuationTime) {
         try {
-            return calculate(instrument, Timestamp.now());
+            return calculate(instrument, valuationTime);
         } catch (Exception e) {
             return createFailedResult(String.format("Unhandled exception when calculating result for instrument %s: %s", instrument, e));
         }

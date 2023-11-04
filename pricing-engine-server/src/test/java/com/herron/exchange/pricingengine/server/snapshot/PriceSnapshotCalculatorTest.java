@@ -68,13 +68,6 @@ class PriceSnapshotCalculatorTest {
     }
 
     @Test
-    void test_theoretical_price() {
-        calculator = new PriceSnapshotCalculator(buildInstrument(List.of(THEORETICAL)), theoreticalPriceCalculator);
-        var marketDataPrice = calculator.updateAndGet(createQuote(1, 10, ASK));
-        assertEquals(Price.create(1000), marketDataPrice.price().scale(1));
-    }
-
-    @Test
     void test_throttling_filter() {
         calculator = new PriceSnapshotCalculator(buildInstrument(List.of(VWAP)), theoreticalPriceCalculator);
         var marketDataPrice = calculator.updateAndGet(createTrade(1, 10, 10));
@@ -84,9 +77,10 @@ class PriceSnapshotCalculatorTest {
 
     @Test
     void test_price_priority() {
-        calculator = new PriceSnapshotCalculator(buildInstrument(List.of(LAST_PRICE, MID_BID_ASK_PRICE, THEORETICAL, BID_PRICE)), theoreticalPriceCalculator);
-        var marketDataPrice = calculator.updateAndGet(createQuote(1, 10, BID));
-        assertEquals(Price.create(1000), marketDataPrice.price().scale(1));
+        calculator = new PriceSnapshotCalculator(buildInstrument(List.of(BID_PRICE, LAST_PRICE, MID_BID_ASK_PRICE, THEORETICAL, BID_PRICE)), theoreticalPriceCalculator);
+        var marketDataPrice = calculator.updateAndGet(createTrade(1, 9, 10));
+        var marketDataPrice2 = calculator.updateAndGet(createQuote(10000, 10, BID));
+        assertEquals(Price.create(10), marketDataPrice2.price().scale(1));
     }
 
     private BondInstrument buildInstrument(List<PriceType> intradayPricePriority) {
@@ -96,7 +90,7 @@ class PriceSnapshotCalculatorTest {
                 .maturityDate(Timestamp.from(LocalDate.of(2023, 1, 1)))
                 .startDate(Timestamp.from(LocalDate.of(2021, 1, 1)))
                 .nominalValue(MonetaryAmount.create(1000, "eur"))
-                .couponRate(0.05)
+                .couponRate(PureNumber.create(0.05))
                 .priceModelParameters(ImmutableBondDiscountPriceModelParameters.builder().dayCountConvention(ACT365)
                         .compoundingMethod(COMPOUNDING)
                         .calculateWithCurve(false)

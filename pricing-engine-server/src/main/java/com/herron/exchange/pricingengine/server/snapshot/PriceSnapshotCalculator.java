@@ -88,9 +88,9 @@ public class PriceSnapshotCalculator {
                 yield TimeAndPrice.createInvalidPrice();
             }
             case THEORETICAL -> {
-                var result = priceCalculator.calculatePrice(instrument);
+                var result = priceCalculator.calculatePrice(instrument, Timestamp.now());
                 if (result.status() == Status.OK) {
-                    yield new TimeAndPrice(Timestamp.now(), result.price(), THEORETICAL);
+                    yield new TimeAndPrice(result.calculationTime(), result.price(), THEORETICAL);
                 }
                 yield TimeAndPrice.createInvalidPrice();
             }

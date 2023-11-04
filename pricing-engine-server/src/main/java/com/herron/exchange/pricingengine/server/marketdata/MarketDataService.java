@@ -78,14 +78,14 @@ public class MarketDataService {
                 .build();
     }
 
-    public MarketDataImpliedVolatilitySurfaceResponse getYieldCurve(MarketDataImpliedVolatilitySurfaceRequest request) {
+    public MarketDataImpliedVolatilitySurfaceResponse getImpliedVolatilitySurface(MarketDataImpliedVolatilitySurfaceRequest request) {
         var entry = getEntry(request);
         if (entry == null) {
             return MarketDataImpliedVolatilitySurfaceResponse.createErrorResponse(String.format("No matching entry found: %s.", request));
         }
         return ImmutableMarketDataImpliedVolatilitySurfaceResponse.builder()
                 .status(OK)
-                .impliedVolatilitySurface((MarketDataImpliedVolatilitySurface) entry)
+                .impliedVolatilitySurfaceEntry((MarketDataImpliedVolatilitySurface) entry)
                 .build();
     }
 

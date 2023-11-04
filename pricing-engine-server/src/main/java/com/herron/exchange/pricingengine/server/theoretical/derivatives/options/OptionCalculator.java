@@ -75,7 +75,7 @@ public class OptionCalculator {
                 .timeFilter(MarketDataRequestTimeFilter.MATCH_OR_FIRST_PRIOR)
                 .build();
 
-        return marketDataService.getYieldCurve(request);
+        return marketDataService.getImpliedVolatilitySurface(request);
     }
 
     private MarketDataYieldCurveResponse requestYieldCurve(String curveId, Timestamp valuationTime) {
