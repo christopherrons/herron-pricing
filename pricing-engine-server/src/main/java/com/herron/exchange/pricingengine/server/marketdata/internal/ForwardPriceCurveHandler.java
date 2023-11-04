@@ -90,7 +90,7 @@ public class ForwardPriceCurveHandler {
     private MarketDataYieldCurveResponse requestYieldCurve(Timestamp valuationTime) {
         var request = ImmutableMarketDataYieldCurveRequest.builder()
                 .staticKey(ImmutableMarketDataYieldCurveStaticKey.builder().curveId(NasdaqYieldCurveHandler.YIELD_CURVE_ID).build())
-                .timeFilter(MarketDataRequestTimeFilter.LATEST)
+                .timeFilter(MarketDataRequestTimeFilter.MATCH_OR_FIRST_PRIOR)
                 .timeComponentKey(ImmutableDefaultTimeComponentKey.builder().timeOfEvent(valuationTime).build())
                 .build();
 
