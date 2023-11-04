@@ -4,14 +4,13 @@ import com.herron.exchange.common.api.common.api.marketdata.MarketDataEntry;
 import com.herron.exchange.common.api.common.api.marketdata.MarketDataRequest;
 import com.herron.exchange.common.api.common.api.marketdata.StaticKey;
 import com.herron.exchange.common.api.common.messages.common.Timestamp;
+import com.herron.exchange.common.api.common.messages.marketdata.entries.MarketDataImpliedVolatilitySurface;
 import com.herron.exchange.common.api.common.messages.marketdata.entries.MarketDataPrice;
 import com.herron.exchange.common.api.common.messages.marketdata.entries.MarketDataYieldCurve;
+import com.herron.exchange.common.api.common.messages.marketdata.requests.MarketDataImpliedVolatilitySurfaceRequest;
 import com.herron.exchange.common.api.common.messages.marketdata.requests.MarketDataPriceRequest;
 import com.herron.exchange.common.api.common.messages.marketdata.requests.MarketDataYieldCurveRequest;
-import com.herron.exchange.common.api.common.messages.marketdata.response.ImmutableMarketDataPriceResponse;
-import com.herron.exchange.common.api.common.messages.marketdata.response.ImmutableMarketDataYieldCurveResponse;
-import com.herron.exchange.common.api.common.messages.marketdata.response.MarketDataPriceResponse;
-import com.herron.exchange.common.api.common.messages.marketdata.response.MarketDataYieldCurveResponse;
+import com.herron.exchange.common.api.common.messages.marketdata.response.*;
 import com.herron.exchange.pricingengine.server.marketdata.external.ExternalMarketDataHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +49,7 @@ public class MarketDataService {
         } catch (InterruptedException e) {
         }
 
-        impliedVolatilityHandler.createSurfaces(Timestamp.now());
+        impliedVolatilityHandler.createSurfaces(Timestamp.now()).forEach(this::addEntry);
     }
 
     public void addEntry(MarketDataEntry entry) {
@@ -76,6 +75,17 @@ public class MarketDataService {
         return ImmutableMarketDataYieldCurveResponse.builder()
                 .status(OK)
                 .yieldCurveEntry((MarketDataYieldCurve) entry)
+                .build();
+    }
+
+    public MarketDataImpliedVolatilitySurfaceResponse getYieldCurve(MarketDataImpliedVolatilitySurfaceRequest request) {
+        var entry = getEntry(request);
+        if (entry == null) {
+            return MarketDataImpliedVolatilitySurfaceResponse.createErrorResponse(String.format("No matching entry found: %s.", request));
+        }
+        return ImmutableMarketDataImpliedVolatilitySurfaceResponse.builder()
+                .status(OK)
+                .impliedVolatilitySurface((MarketDataImpliedVolatilitySurface) entry)
                 .build();
     }
 

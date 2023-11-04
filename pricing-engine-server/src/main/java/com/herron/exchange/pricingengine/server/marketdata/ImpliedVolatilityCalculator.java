@@ -7,6 +7,7 @@ import com.herron.exchange.common.api.common.enums.MarketDataRequestTimeFilter;
 import com.herron.exchange.common.api.common.messages.common.Price;
 import com.herron.exchange.common.api.common.messages.common.Timestamp;
 import com.herron.exchange.common.api.common.messages.marketdata.ImmutableDefaultTimeComponentKey;
+import com.herron.exchange.common.api.common.messages.marketdata.entries.MarketDataImpliedVolatilitySurface;
 import com.herron.exchange.common.api.common.messages.marketdata.requests.ImmutableMarketDataPriceRequest;
 import com.herron.exchange.common.api.common.messages.marketdata.requests.ImmutableMarketDataYieldCurveRequest;
 import com.herron.exchange.common.api.common.messages.marketdata.response.MarketDataPriceResponse;
@@ -32,13 +33,13 @@ public class ImpliedVolatilityCalculator {
         this.marketDataService = marketDataService;
     }
 
-    public void createSurfaces(Timestamp timestamp) {
+    public List<MarketDataImpliedVolatilitySurface> createSurfaces(Timestamp timestamp) {
         List<OptionInstrument> options = ReferenceDataCache.getCache().getInstruments().stream()
                 .filter(OptionInstrument.class::isInstance)
                 .map(OptionInstrument.class::cast)
                 .toList();
 
-        Map<Instrument, List<OptionInstrument>> instrumentToOptions = new HashMap<>();
+        Map<Instrument, List<OptionInstrument>> underlyingInstrumentToOptions = new HashMap<>();
         Map<Instrument, Price> instrumentToPrice = new HashMap<>();
         for (var option : options) {
             var optionPrice = requestPrice(option, timestamp);
@@ -53,12 +54,14 @@ public class ImpliedVolatilityCalculator {
                 continue;
             }
 
-            instrumentToOptions.computeIfAbsent(underlying, k -> new ArrayList<>()).add(option);
+            underlyingInstrumentToOptions.computeIfAbsent(underlying, k -> new ArrayList<>()).add(option);
             instrumentToPrice.putIfAbsent(underlying, underlyingPrice.marketDataPrice().price());
             instrumentToPrice.putIfAbsent(option, optionPrice.marketDataPrice().price());
         }
 
         var yieldCurve = requestYieldCurve();
+        List<MarketDataImpliedVolatilitySurface> ivSurface = new ArrayList<>();
+        return ivSurface;
     }
 
     private MarketDataYieldCurveResponse requestYieldCurve() {
