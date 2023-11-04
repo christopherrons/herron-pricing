@@ -8,7 +8,7 @@ import com.herron.exchange.common.api.common.messages.marketdata.entries.Immutab
 import com.herron.exchange.common.api.common.messages.marketdata.entries.MarketDataYieldCurve;
 import com.herron.exchange.common.api.common.messages.marketdata.statickeys.ImmutableMarketDataYieldCurveStaticKey;
 import com.herron.exchange.common.api.common.parametricmodels.yieldcurve.YieldCurve;
-import com.herron.exchange.common.api.common.parametricmodels.yieldcurve.YieldCurveModelParameters;
+import com.herron.exchange.common.api.common.parametricmodels.yieldcurve.model.YieldCurveModelParameters;
 import com.herron.exchange.integrations.nasdaq.NasdaqYieldCurveClient;
 
 import java.time.LocalDate;

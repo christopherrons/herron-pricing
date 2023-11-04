@@ -4,14 +4,18 @@ import com.herron.exchange.common.api.common.api.marketdata.MarketDataEntry;
 import com.herron.exchange.common.api.common.api.marketdata.MarketDataRequest;
 import com.herron.exchange.common.api.common.api.marketdata.StaticKey;
 import com.herron.exchange.common.api.common.messages.common.Timestamp;
+import com.herron.exchange.common.api.common.messages.marketdata.entries.MarketDataForwardPriceCurve;
 import com.herron.exchange.common.api.common.messages.marketdata.entries.MarketDataImpliedVolatilitySurface;
 import com.herron.exchange.common.api.common.messages.marketdata.entries.MarketDataPrice;
 import com.herron.exchange.common.api.common.messages.marketdata.entries.MarketDataYieldCurve;
+import com.herron.exchange.common.api.common.messages.marketdata.requests.MarketDataForwardPriceCurveRequest;
 import com.herron.exchange.common.api.common.messages.marketdata.requests.MarketDataImpliedVolatilitySurfaceRequest;
 import com.herron.exchange.common.api.common.messages.marketdata.requests.MarketDataPriceRequest;
 import com.herron.exchange.common.api.common.messages.marketdata.requests.MarketDataYieldCurveRequest;
 import com.herron.exchange.common.api.common.messages.marketdata.response.*;
 import com.herron.exchange.pricingengine.server.marketdata.external.ExternalMarketDataHandler;
+import com.herron.exchange.pricingengine.server.marketdata.internal.ForwardPriceCurveHandler;
+import com.herron.exchange.pricingengine.server.marketdata.internal.ImpliedVolatilitySurfaceHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import static com.herron.exchange.common.api.common.enums.Status.OK;
 
@@ -28,12 +33,14 @@ public class MarketDataService {
     private static final Logger LOGGER = LoggerFactory.getLogger(MarketDataService.class);
 
     private final ExternalMarketDataHandler externalMarketDataHandler;
-    private final ImpliedVolatilityCalculator impliedVolatilityHandler;
+    private final ImpliedVolatilitySurfaceHandler impliedVolatilitySurfaceHandler;
+    private final ForwardPriceCurveHandler forwardPriceCurveHandler;
     private final Map<StaticKey, MarketDataRepository> keyToRepository = new ConcurrentHashMap<>();
 
     public MarketDataService(ExternalMarketDataHandler externalMarketDataHandler) {
         this.externalMarketDataHandler = externalMarketDataHandler;
-        this.impliedVolatilityHandler = new ImpliedVolatilityCalculator(this);
+        this.impliedVolatilitySurfaceHandler = new ImpliedVolatilitySurfaceHandler(this);
+        this.forwardPriceCurveHandler = new ForwardPriceCurveHandler(this);
     }
 
     public void init() {
@@ -41,15 +48,15 @@ public class MarketDataService {
         ExecutorService executor = Executors.newFixedThreadPool(3);
         Runnable task1 = () -> externalMarketDataHandler.getPreviousDaySettlementPrices().forEach(this::addEntry);
         Runnable task2 = () -> externalMarketDataHandler.getYieldCurves(LocalDate.now().minusDays(50), LocalDate.now()).forEach(this::addEntry);
-        executor.submit(task1);
-        executor.submit(task2);
+        Stream.of(task1, task2).forEach(executor::submit);
         executor.shutdown();
         try {
             executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
         } catch (InterruptedException e) {
         }
 
-        impliedVolatilityHandler.createSurfaces(Timestamp.now()).forEach(this::addEntry);
+        forwardPriceCurveHandler.createForwardPriceCurves(Timestamp.now()).forEach(this::addEntry);
+        impliedVolatilitySurfaceHandler.createSurfaces(Timestamp.now()).forEach(this::addEntry);
     }
 
     public void addEntry(MarketDataEntry entry) {
@@ -75,6 +82,17 @@ public class MarketDataService {
         return ImmutableMarketDataYieldCurveResponse.builder()
                 .status(OK)
                 .yieldCurveEntry((MarketDataYieldCurve) entry)
+                .build();
+    }
+
+    public MarketDataForwardPriceCurveResponse getForwardPriceCurve(MarketDataForwardPriceCurveRequest request) {
+        var entry = getEntry(request);
+        if (entry == null) {
+            return MarketDataForwardPriceCurveResponse.createErrorResponse(String.format("No matching entry found: %s.", request));
+        }
+        return ImmutableMarketDataForwardPriceCurveResponse.builder()
+                .status(OK)
+                .forwardPriceCurveEntry((MarketDataForwardPriceCurve) entry)
                 .build();
     }
 

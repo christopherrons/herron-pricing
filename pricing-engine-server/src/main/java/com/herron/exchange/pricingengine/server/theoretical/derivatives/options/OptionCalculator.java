@@ -7,18 +7,22 @@ import com.herron.exchange.common.api.common.enums.MarketDataRequestTimeFilter;
 import com.herron.exchange.common.api.common.enums.Status;
 import com.herron.exchange.common.api.common.messages.common.Timestamp;
 import com.herron.exchange.common.api.common.messages.marketdata.ImmutableDefaultTimeComponentKey;
+import com.herron.exchange.common.api.common.messages.marketdata.requests.ImmutableMarketDataForwardPriceCurveRequest;
 import com.herron.exchange.common.api.common.messages.marketdata.requests.ImmutableMarketDataImpliedVolatilitySurfaceRequest;
 import com.herron.exchange.common.api.common.messages.marketdata.requests.ImmutableMarketDataPriceRequest;
 import com.herron.exchange.common.api.common.messages.marketdata.requests.ImmutableMarketDataYieldCurveRequest;
+import com.herron.exchange.common.api.common.messages.marketdata.response.MarketDataForwardPriceCurveResponse;
 import com.herron.exchange.common.api.common.messages.marketdata.response.MarketDataImpliedVolatilitySurfaceResponse;
 import com.herron.exchange.common.api.common.messages.marketdata.response.MarketDataPriceResponse;
 import com.herron.exchange.common.api.common.messages.marketdata.response.MarketDataYieldCurveResponse;
+import com.herron.exchange.common.api.common.messages.marketdata.statickeys.ImmutableMarketDataForwardPriceCurveStaticKey;
 import com.herron.exchange.common.api.common.messages.marketdata.statickeys.ImmutableMarketDataImpliedVolatilitySurfaceStaticKey;
 import com.herron.exchange.common.api.common.messages.marketdata.statickeys.ImmutableMarketDataPriceStaticKey;
 import com.herron.exchange.common.api.common.messages.marketdata.statickeys.ImmutableMarketDataYieldCurveStaticKey;
 import com.herron.exchange.common.api.common.messages.pricing.BlackScholesPriceModelParameters;
 import com.herron.exchange.common.api.common.messages.pricing.FailedPriceModelResult;
 import com.herron.exchange.pricingengine.server.marketdata.MarketDataService;
+import com.herron.exchange.quantlib.pricemodels.derivatives.options.Black76;
 import com.herron.exchange.quantlib.pricemodels.derivatives.options.BlackScholesMerton;
 
 public class OptionCalculator {
@@ -31,7 +35,7 @@ public class OptionCalculator {
     public PriceModelResult calculate(OptionInstrument option, Timestamp valuationTime) {
         return switch (option.priceModel()) {
             case BLACK_SCHOLES -> calculateWithBlackScholes(option, valuationTime);
-            case BLACK_76 -> FailedPriceModelResult.createFailedResult("");
+            case BLACK_76 -> calculateWithBlack76(option, valuationTime);
             case BARONE_ADESI_WHALEY -> FailedPriceModelResult.createFailedResult("");
             default -> FailedPriceModelResult.createFailedResult(String.format("Option price model %s not supported.", option));
         };
@@ -54,23 +58,79 @@ public class OptionCalculator {
             return FailedPriceModelResult.createFailedResult(impliedVolatilitySurfaceResponse.error());
         }
 
-        var ttm = BlackScholesMerton.calculateTimeToMaturity(valuationTime, option);
-        var strikePrice = option.strikePrice().getRealValue();
+        double ttm = BlackScholesMerton.calculateTimeToMaturity(valuationTime, option);
+        double strikePrice = option.strikePrice().getRealValue();
+        double spotPrice = underlyingPriceResponse.marketDataPrice().price().getRealValue();
+        double riskFreeRate = yieldCurveResponse.yieldCurveEntry().yieldCurve().getYield(ttm);
+        double logMoneyness = Math.log(strikePrice / spotPrice);
+        double impliedVolatility = impliedVolatilitySurfaceResponse.impliedVolatilitySurfaceEntry().impliedVolatilitySurface().getImpliedVolatility(ttm, logMoneyness);
         return BlackScholesMerton.calculateOptionPrice(
                 valuationTime,
                 option.optionType(),
                 strikePrice,
-                underlyingPriceResponse.marketDataPrice().price().getRealValue(),
-                0.01,
+                spotPrice,
+                impliedVolatility,
                 ttm,
-                yieldCurveResponse.yieldCurveEntry().yieldCurve().getYield(ttm),
+                riskFreeRate,
                 parameters.dividendYield().getRealValue()
         );
     }
 
-    private MarketDataImpliedVolatilitySurfaceResponse requestVolatilitySurface(String instrumentId, Timestamp valuationTime) {
+    private PriceModelResult calculateWithBlack76(OptionInstrument option, Timestamp valuationTime) {
+        var parameters = (BlackScholesPriceModelParameters) option.priceModelParameters();
+        var yieldCurveResponse = requestYieldCurve(parameters.yieldCurveId(), valuationTime);
+        if (yieldCurveResponse.status() == Status.ERROR) {
+            return FailedPriceModelResult.createFailedResult(yieldCurveResponse.error());
+        }
+
+        var underlyingPriceResponse = requestPrice(option, valuationTime);
+        if (underlyingPriceResponse.status() == Status.ERROR) {
+            return FailedPriceModelResult.createFailedResult(underlyingPriceResponse.error());
+        }
+
+        var impliedVolatilitySurfaceResponse = requestVolatilitySurface(option.underlyingInstrumentId(), valuationTime);
+        if (impliedVolatilitySurfaceResponse.status() == Status.ERROR) {
+            return FailedPriceModelResult.createFailedResult(impliedVolatilitySurfaceResponse.error());
+        }
+
+        var forwardPriceCurveResponse = requestForwardPriceCurve(option.underlyingInstrumentId(), valuationTime);
+
+        double ttm = Black76.calculateTimeToMaturity(valuationTime, option);
+        double strikePrice = option.strikePrice().getRealValue();
+        double spotPrice = underlyingPriceResponse.marketDataPrice().price().getRealValue();
+        double riskFreeRate = yieldCurveResponse.yieldCurveEntry().yieldCurve().getYield(ttm);
+        double logMoneyness = Math.log(strikePrice / spotPrice);
+        double impliedVolatility = impliedVolatilitySurfaceResponse.impliedVolatilitySurfaceEntry().impliedVolatilitySurface().getImpliedVolatility(ttm, logMoneyness);
+        double dividendYield = parameters.dividendYield().getRealValue();
+        double forwardPrice = spotPrice * Math.exp((riskFreeRate - dividendYield) * ttm);
+        if (forwardPriceCurveResponse.status() == Status.OK) {
+            forwardPrice = forwardPriceCurveResponse.forwardPriceCurveEntry().forwardPriceCurve().getForwardPrice(ttm);
+        }
+
+        return Black76.calculateOptionPrice(
+                valuationTime,
+                option.optionType(),
+                strikePrice,
+                forwardPrice,
+                impliedVolatility,
+                ttm,
+                riskFreeRate
+        );
+    }
+
+    private MarketDataForwardPriceCurveResponse requestForwardPriceCurve(String underlyingInstrumentId, Timestamp valuationTime) {
+        var request = ImmutableMarketDataForwardPriceCurveRequest.builder()
+                .staticKey(ImmutableMarketDataForwardPriceCurveStaticKey.builder().instrumentId(underlyingInstrumentId).build())
+                .timeComponentKey(ImmutableDefaultTimeComponentKey.builder().timeOfEvent(valuationTime).build())
+                .timeFilter(MarketDataRequestTimeFilter.MATCH_OR_FIRST_PRIOR)
+                .build();
+
+        return marketDataService.getForwardPriceCurve(request);
+    }
+
+    private MarketDataImpliedVolatilitySurfaceResponse requestVolatilitySurface(String underlyingInstrumentId, Timestamp valuationTime) {
         var request = ImmutableMarketDataImpliedVolatilitySurfaceRequest.builder()
-                .staticKey(ImmutableMarketDataImpliedVolatilitySurfaceStaticKey.builder().instrumentId(instrumentId).build())
+                .staticKey(ImmutableMarketDataImpliedVolatilitySurfaceStaticKey.builder().instrumentId(underlyingInstrumentId).build())
                 .timeComponentKey(ImmutableDefaultTimeComponentKey.builder().timeOfEvent(valuationTime).build())
                 .timeFilter(MarketDataRequestTimeFilter.MATCH_OR_FIRST_PRIOR)
                 .build();
