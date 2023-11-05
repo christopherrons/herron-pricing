@@ -13,12 +13,12 @@ dependencyResolutionManagement {
             library("javax.json", "org.glassfish:javax.json:1.1.4")
             library("javafaker", "com.github.javafaker:javafaker:1.0.2")
             library("commons.math", "org.apache.commons:commons-math3:3.2")
-            library("common.api", "com.herron.exchange:common-api:1.0.290")
-            library("common", "com.herron.exchange:common:1.0.290")
+            library("common.api", "com.herron.exchange:common-api:1.0.291")
+            library("common", "com.herron.exchange:common:1.0.291")
             library("integration.api", "com.herron.exchange:integration-api:1.0.35")
             library("integrations", "com.herron.exchange:integrations:1.0.35")
-            library("quantlib.api", "com.herron.exchange:quantlib-api:1.0.17")
-            library("quantlib", "com.herron.exchange:quantlib:1.0.17")
+            library("quantlib.api", "com.herron.exchange:quantlib-api:1.0.18")
+            library("quantlib", "com.herron.exchange:quantlib:1.0.18")
         }
 
         create("testlibs") {
