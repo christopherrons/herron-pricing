@@ -58,12 +58,14 @@ public class OptionCalculator {
             return FailedPriceModelResult.createFailedResult(impliedVolatilitySurfaceResponse.error());
         }
 
+        var ivSurface = impliedVolatilitySurfaceResponse.impliedVolatilitySurfaceEntry().impliedVolatilitySurface();
+
         double ttm = BlackScholesMerton.calculateTimeToMaturity(valuationTime, option);
         double strikePrice = option.strikePrice().getRealValue();
         double spotPrice = underlyingPriceResponse.marketDataPrice().price().getRealValue();
         double riskFreeRate = yieldCurveResponse.yieldCurveEntry().yieldCurve().getYield(ttm);
         double logMoneyness = Math.log(strikePrice / spotPrice);
-        double impliedVolatility = impliedVolatilitySurfaceResponse.impliedVolatilitySurfaceEntry().impliedVolatilitySurface().getImpliedVolatility(ttm, logMoneyness);
+        double impliedVolatility = ivSurface.getImpliedVolatility(ttm, logMoneyness, option.optionType());
         return BlackScholesMerton.calculateOptionPrice(
                 valuationTime,
                 option.optionType(),
@@ -92,6 +94,7 @@ public class OptionCalculator {
         if (impliedVolatilitySurfaceResponse.status() == Status.ERROR) {
             return FailedPriceModelResult.createFailedResult(impliedVolatilitySurfaceResponse.error());
         }
+        var ivSurface = impliedVolatilitySurfaceResponse.impliedVolatilitySurfaceEntry().impliedVolatilitySurface();
 
         var forwardPriceCurveResponse = requestForwardPriceCurve(option.underlyingInstrumentId(), valuationTime);
 
@@ -100,7 +103,7 @@ public class OptionCalculator {
         double spotPrice = underlyingPriceResponse.marketDataPrice().price().getRealValue();
         double riskFreeRate = yieldCurveResponse.yieldCurveEntry().yieldCurve().getYield(ttm);
         double logMoneyness = Math.log(strikePrice / spotPrice);
-        double impliedVolatility = impliedVolatilitySurfaceResponse.impliedVolatilitySurfaceEntry().impliedVolatilitySurface().getImpliedVolatility(ttm, logMoneyness);
+        double impliedVolatility = ivSurface.getImpliedVolatility(ttm, logMoneyness, option.optionType());
         double dividendYield = parameters.dividendYield().getRealValue();
         double forwardPrice = spotPrice * Math.exp((riskFreeRate - dividendYield) * ttm);
         if (forwardPriceCurveResponse.status() == Status.OK) {
