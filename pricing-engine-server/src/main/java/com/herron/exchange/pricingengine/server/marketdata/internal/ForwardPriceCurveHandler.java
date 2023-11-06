@@ -37,6 +37,7 @@ public class ForwardPriceCurveHandler {
     }
 
     public List<MarketDataForwardPriceCurve> createForwardPriceCurves(Timestamp valuationTime) {
+        LOGGER.info("Creating forward curve for {}.", valuationTime);
         List<OptionInstrument> options = ReferenceDataCache.getCache().getInstruments().stream()
                 .filter(OptionInstrument.class::isInstance)
                 .map(OptionInstrument.class::cast)

@@ -20,7 +20,7 @@ import com.herron.exchange.common.api.common.messages.marketdata.statickeys.Immu
 import com.herron.exchange.common.api.common.parametricmodels.yieldcurve.YieldCurve;
 import com.herron.exchange.pricingengine.server.marketdata.MarketDataService;
 import com.herron.exchange.pricingengine.server.marketdata.external.nasdaq.NasdaqYieldCurveHandler;
-import com.herron.exchange.quantlib.parametricmodels.ImpliedVolatilityConstructor;
+import com.herron.exchange.quantlib.parametricmodels.ivsurface.ImpliedVolatilityConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +41,8 @@ public class ImpliedVolatilitySurfaceHandler {
     }
 
     public List<MarketDataImpliedVolatilitySurface> createSurfaces(Timestamp valuationTime) {
+        LOGGER.info("Creating implied volatility surface for {}.", valuationTime);
+
         List<OptionInstrument> options = ReferenceDataCache.getCache().getInstruments().stream()
                 .filter(OptionInstrument.class::isInstance)
                 .map(OptionInstrument.class::cast)

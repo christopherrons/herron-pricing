@@ -14,14 +14,7 @@ springBoot {
 allprojects {
 	repositories {
 		mavenLocal()
-		maven {
-			name = "bytesafe"
-			url = uri("https://herron.bytesafe.dev/maven/herron/")
-			credentials {
-				username = extra["username"] as String?
-				password = extra["password"] as String?
-			}
-		}
+		mavenCentral()
 	}
 
 	apply(plugin = "maven-publish")
@@ -47,14 +40,7 @@ allprojects {
 				from(components["java"])
 			}
 			repositories {
-				maven {
-					name = "bytesafe"
-					url = uri("https://herron.bytesafe.dev/maven/herron/")
-					credentials {
-						username = extra["username"] as String?
-						password = extra["password"] as String?
-					}
-				}
+				mavenLocal()
 			}
 		}
 	}
@@ -102,6 +88,12 @@ tasks.register<Tar>("buildAndPackage") {
 		exclude("**/*.md")
 	}
 	from(layout.buildDirectory.file("libs/${rootProject.name}-${version}.jar"))
+}
+
+tasks {
+	named("build") {
+		dependsOn(named("publishToMavenLocal"))
+	}
 }
 
 tasks.register("deployToServer") {
