@@ -99,7 +99,7 @@ public class EurexPreviousDaySettlementHandler {
         isingToPrice.put("FR0000045072", 11.68);
         isingToPrice.put("XC000A13RM69", 11.37);
         isingToPrice.put("AT0000746409", 84.60);
-        isingToPrice.put("NL0013332471", 5.88);
+        isingToPrice.put("NL0013332471", 6.26);
         isingToPrice.put("DE000NWRK013", 72.70);
         isingToPrice.put("BE0974258874", 39.14);
         isingToPrice.put("FR0000124141", 26.85);

@@ -64,8 +64,7 @@ public class OptionCalculator {
         double strikePrice = option.strikePrice().getRealValue();
         double spotPrice = underlyingPriceResponse.marketDataPrice().price().getRealValue();
         double riskFreeRate = yieldCurveResponse.yieldCurveEntry().yieldCurve().getYield(ttm);
-        double logMoneyness = Math.log(strikePrice / spotPrice);
-        double impliedVolatility = ivSurface.getImpliedVolatility(ttm, logMoneyness, option.optionType());
+        double impliedVolatility = ivSurface.getImpliedVolatility(ttm, strikePrice);
         return BlackScholesMerton.calculateOptionPrice(
                 valuationTime,
                 option.optionType(),
@@ -102,8 +101,7 @@ public class OptionCalculator {
         double strikePrice = option.strikePrice().getRealValue();
         double spotPrice = underlyingPriceResponse.marketDataPrice().price().getRealValue();
         double riskFreeRate = yieldCurveResponse.yieldCurveEntry().yieldCurve().getYield(ttm);
-        double logMoneyness = Math.log(strikePrice / spotPrice);
-        double impliedVolatility = ivSurface.getImpliedVolatility(ttm, logMoneyness, option.optionType());
+        double impliedVolatility = ivSurface.getImpliedVolatility(ttm, strikePrice);
         double dividendYield = parameters.dividendYield().getRealValue();
         double forwardPrice = spotPrice * Math.exp((riskFreeRate - dividendYield) * ttm);
         if (forwardPriceCurveResponse.status() == Status.OK) {
