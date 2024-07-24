@@ -56,7 +56,7 @@ public class ForwardPriceCurveHandler {
             if (!instrumentToPrice.containsKey(underlying)) {
                 var underlyingPrice = requestPrice(underlying, valuationTime);
                 if (underlyingPrice.status() == ERROR) {
-                    LOGGER.error("Removing {} price not found.", underlying);
+                    LOGGER.warn("Removing {} price not found.", underlying);
                     continue;
                 }
                 instrumentToPrice.putIfAbsent(underlying, underlyingPrice.marketDataPrice().price());
