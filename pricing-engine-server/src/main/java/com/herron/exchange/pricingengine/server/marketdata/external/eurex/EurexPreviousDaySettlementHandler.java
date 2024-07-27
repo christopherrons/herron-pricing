@@ -1,6 +1,7 @@
 package com.herron.exchange.pricingengine.server.marketdata.external.eurex;
 
 import com.herron.exchange.common.api.common.enums.PriceType;
+import com.herron.exchange.common.api.common.messages.common.BusinessCalendar;
 import com.herron.exchange.common.api.common.messages.common.Price;
 import com.herron.exchange.common.api.common.messages.common.Timestamp;
 import com.herron.exchange.common.api.common.messages.marketdata.ImmutableDefaultTimeComponentKey;
@@ -43,8 +44,9 @@ public class EurexPreviousDaySettlementHandler {
         }
 
         List<MarketDataPrice> previousSettlementPrice = new ArrayList<>();
+        var business = BusinessCalendar.defaultWeekendCalendar();
         for (var contractData : eurexContractDataList) {
-            var previousDate = LocalDateTime.of(LocalDate.parse(contractData.data().contracts().date(), DATE_TIME_FORMATTER), LocalTime.MIDNIGHT).minusDays(1);
+            var previousDate = LocalDateTime.of(business.getFirstDateBeforeHoliday(LocalDate.now()), LocalTime.MIDNIGHT);
             for (var contract : contractData.data().contracts().data()) {
                 previousSettlementPrice.add(
                         ImmutableMarketDataPrice.builder()

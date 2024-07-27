@@ -76,7 +76,7 @@ public class MarketDataRepository {
                 return priorOrAtRequestDateEntries.first();
             }
         }
-        return null;
+        return match;
     }
 
     private MarketDataEntry checkMatchDateAndTime(MarketDataRequest request) {
