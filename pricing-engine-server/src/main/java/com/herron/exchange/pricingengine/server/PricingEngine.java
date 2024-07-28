@@ -4,6 +4,7 @@ import com.herron.exchange.common.api.common.api.Event;
 import com.herron.exchange.common.api.common.cache.ReferenceDataCache;
 import com.herron.exchange.common.api.common.kafka.KafkaBroadcastHandler;
 import com.herron.exchange.common.api.common.messages.trading.PriceQuote;
+import com.herron.exchange.common.api.common.messages.trading.TopOfBook;
 import com.herron.exchange.common.api.common.messages.trading.Trade;
 import com.herron.exchange.pricingengine.server.theoretical.TheoreticalPriceCalculator;
 import com.herron.exchange.pricingengine.server.snapshot.PriceSnapshotHandler;
@@ -29,9 +30,9 @@ public class PricingEngine {
         queueMessage(id, trade);
     }
 
-    public void queueQuote(PriceQuote quote) {
-        String id = ReferenceDataCache.getCache().getOrderbookData(quote.orderbookId()).instrument().product().productName();
-        queueMessage(id, quote);
+    public void queueQuote(TopOfBook topOfBook) {
+        String id = ReferenceDataCache.getCache().getOrderbookData(topOfBook.orderbookId()).instrument().product().productName();
+        queueMessage(id, topOfBook);
     }
 
     private void queueMessage(String id, Event event) {

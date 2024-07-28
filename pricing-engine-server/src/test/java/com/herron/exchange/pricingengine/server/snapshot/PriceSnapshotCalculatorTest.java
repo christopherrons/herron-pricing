@@ -3,13 +3,11 @@ package com.herron.exchange.pricingengine.server.snapshot;
 import com.herron.exchange.common.api.common.api.referencedata.instruments.BondInstrument;
 import com.herron.exchange.common.api.common.enums.OrderSideEnum;
 import com.herron.exchange.common.api.common.enums.PriceType;
+import com.herron.exchange.common.api.common.enums.QuoteTypeEnum;
 import com.herron.exchange.common.api.common.messages.common.*;
 import com.herron.exchange.common.api.common.messages.pricing.ImmutableBondDiscountPriceModelParameters;
 import com.herron.exchange.common.api.common.messages.refdata.*;
-import com.herron.exchange.common.api.common.messages.trading.ImmutablePriceQuote;
-import com.herron.exchange.common.api.common.messages.trading.ImmutableTrade;
-import com.herron.exchange.common.api.common.messages.trading.PriceQuote;
-import com.herron.exchange.common.api.common.messages.trading.Trade;
+import com.herron.exchange.common.api.common.messages.trading.*;
 import com.herron.exchange.pricingengine.server.theoretical.TheoreticalPriceCalculator;
 import com.herron.exchange.pricingengine.server.theoretical.fixedincome.bonds.BondPriceCalculator;
 import org.junit.jupiter.api.BeforeEach;
@@ -139,13 +137,22 @@ class PriceSnapshotCalculatorTest {
                 .build();
     }
 
-    private PriceQuote createQuote(long timeOfEventMs, double price, OrderSideEnum side) {
-        return ImmutablePriceQuote.builder()
-                .side(side)
+    private TopOfBook createQuote(long timeOfEventMs, double price, OrderSideEnum side) {
+        var quote = ImmutablePriceQuote.builder()
+                .quoteType(side == BID ? QuoteTypeEnum.BID_PRICE : QuoteTypeEnum.ASK_PRICE)
                 .timeOfEvent(Timestamp.from(timeOfEventMs))
                 .orderbookId("orderbookId")
                 .eventType(SYSTEM)
                 .price(Price.create(price))
                 .build();
+
+        var builder = ImmutableTopOfBook.builder()
+                .timeOfEvent(Timestamp.from(timeOfEventMs))
+                .orderbookId("orderbookId")
+                .eventType(SYSTEM);
+
+        return side == BID
+                ? builder.bidQuote(quote).build()
+                : builder.askQuote(quote).build();
     }
 }

@@ -9,6 +9,7 @@ import com.herron.exchange.common.api.common.kafka.model.KafkaSubscriptionReques
 import com.herron.exchange.common.api.common.messages.BroadcastMessage;
 import com.herron.exchange.common.api.common.messages.common.DataStreamState;
 import com.herron.exchange.common.api.common.messages.trading.PriceQuote;
+import com.herron.exchange.common.api.common.messages.trading.TopOfBook;
 import com.herron.exchange.pricingengine.server.PricingEngine;
 
 import java.util.List;
@@ -37,8 +38,8 @@ public class TopOfBookConsumer extends DataConsumer implements KafkaMessageHandl
     @Override
     public void onMessage(BroadcastMessage broadcastMessage) {
         Message message = broadcastMessage.message();
-        if (message instanceof PriceQuote priceQuote) {
-            pricingEngine.queueQuote(priceQuote);
+        if (message instanceof TopOfBook topOfBook) {
+            pricingEngine.queueQuote(topOfBook);
 
         } else if (message instanceof DataStreamState state) {
             switch (state.state()) {

@@ -11,6 +11,7 @@ import com.herron.exchange.common.api.common.kafka.KafkaBroadcastHandler;
 import com.herron.exchange.common.api.common.messages.common.PartitionKey;
 import com.herron.exchange.common.api.common.messages.marketdata.entries.MarketDataPrice;
 import com.herron.exchange.common.api.common.messages.trading.PriceQuote;
+import com.herron.exchange.common.api.common.messages.trading.TopOfBook;
 import com.herron.exchange.common.api.common.messages.trading.Trade;
 import com.herron.exchange.common.api.common.wrappers.ThreadWrapper;
 import com.herron.exchange.pricingengine.server.theoretical.TheoreticalPriceCalculator;
@@ -95,10 +96,10 @@ public class PriceSnapshotHandler {
             var marketPrice = calculator.updateAndGet(trade);
             broadcastPrice(marketPrice);
 
-        } else if (event instanceof PriceQuote priceQuote) {
-            var instrument = ReferenceDataCache.getCache().getOrderbookData(priceQuote.orderbookId()).instrument();
+        } else if (event instanceof TopOfBook topOfBook) {
+            var instrument = ReferenceDataCache.getCache().getOrderbookData(topOfBook.orderbookId()).instrument();
             var calculator = getOrCreateCalculator(instrument);
-            var marketPrice = calculator.updateAndGet(priceQuote);
+            var marketPrice = calculator.updateAndGet(topOfBook);
             broadcastPrice(marketPrice);
         }
     }

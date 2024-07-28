@@ -10,12 +10,13 @@ import com.herron.exchange.common.api.common.messages.marketdata.ImmutableDefaul
 import com.herron.exchange.common.api.common.messages.marketdata.entries.ImmutableMarketDataPrice;
 import com.herron.exchange.common.api.common.messages.marketdata.entries.MarketDataPrice;
 import com.herron.exchange.common.api.common.messages.marketdata.statickeys.ImmutableMarketDataPriceStaticKey;
-import com.herron.exchange.common.api.common.messages.trading.PriceQuote;
+import com.herron.exchange.common.api.common.messages.trading.TopOfBook;
 import com.herron.exchange.common.api.common.messages.trading.Trade;
 import com.herron.exchange.pricingengine.server.theoretical.TheoreticalPriceCalculator;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 
 import static com.herron.exchange.common.api.common.enums.PriceType.*;
 
@@ -42,12 +43,9 @@ public class PriceSnapshotCalculator {
         return getPrice();
     }
 
-    public MarketDataPrice updateAndGet(PriceQuote priceQuote) {
-        switch (priceQuote.side()) {
-            case BID -> bidPrice = bidPrice.from(priceQuote.timeOfEvent(), priceQuote.price());
-            case ASK -> askPrice = askPrice.from(priceQuote.timeOfEvent(), priceQuote.price());
-        }
-
+    public MarketDataPrice updateAndGet(TopOfBook topOfBook) {
+        bidPrice = Optional.ofNullable(topOfBook.bidQuote()).map(bq -> bidPrice.from(bq.timeOfEvent(), bq.price())).orElse(bidPrice);
+        askPrice = Optional.ofNullable(topOfBook.askQuote()).map(aq -> askPrice.from(aq.timeOfEvent(), aq.price())).orElse(askPrice);
         return getPrice();
     }
 
