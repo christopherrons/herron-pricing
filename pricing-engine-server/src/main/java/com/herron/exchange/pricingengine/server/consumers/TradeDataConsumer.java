@@ -14,9 +14,6 @@ import com.herron.exchange.pricingengine.server.PricingEngine;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-import static com.herron.exchange.common.api.common.enums.DataStreamEnum.DONE;
-
-
 public class TradeDataConsumer extends DataConsumer implements KafkaMessageHandler {
     private final PricingEngine pricingEngine;
     private final KafkaConsumerClient consumerClient;
