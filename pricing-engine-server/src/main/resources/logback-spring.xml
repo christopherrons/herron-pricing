@@ -6,7 +6,7 @@
     <appender name="Console"
               class="ch.qos.logback.core.ConsoleAppender">
         <layout class="ch.qos.logback.classic.PatternLayout">
-            <Pattern>%d{HH:mm:ss.SSS} %-5level [%thread]  %logger - %msg%n</Pattern>
+            <Pattern>%d{HH:mm:ss.SSS} %-5level [%thread] %logger - %msg%n</Pattern>
         </layout>
     </appender>
 
@@ -15,7 +15,7 @@
         <file>${LOGS}/pricing-engine.log</file>
         <encoder
                 class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <Pattern>%d{HH:mm:ss.SSS} %-5level [%thread]  %logger - %msg%n</Pattern>
+            <Pattern>%d{HH:mm:ss.SSS} %-5level [%thread] %logger - %msg%n</Pattern>
         </encoder>
 
         <!-- rollover daily or when the file reaches 1000000MB MegaBytes -->

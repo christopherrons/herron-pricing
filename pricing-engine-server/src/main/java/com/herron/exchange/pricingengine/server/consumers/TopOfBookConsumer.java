@@ -8,7 +8,6 @@ import com.herron.exchange.common.api.common.kafka.model.KafkaSubscriptionDetail
 import com.herron.exchange.common.api.common.kafka.model.KafkaSubscriptionRequest;
 import com.herron.exchange.common.api.common.messages.BroadcastMessage;
 import com.herron.exchange.common.api.common.messages.common.DataStreamState;
-import com.herron.exchange.common.api.common.messages.trading.PriceQuote;
 import com.herron.exchange.common.api.common.messages.trading.TopOfBook;
 import com.herron.exchange.pricingengine.server.PricingEngine;
 

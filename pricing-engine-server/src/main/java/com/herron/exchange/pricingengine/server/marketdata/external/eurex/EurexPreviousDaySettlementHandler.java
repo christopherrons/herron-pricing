@@ -33,6 +33,28 @@ public class EurexPreviousDaySettlementHandler {
         this.client = client;
     }
 
+    private static Map<String, Double> isinToPriceMap() {
+        Map<String, Double> isingToPrice = new HashMap<>();
+        isingToPrice.put("DE000ENAG999", 11.37);
+        isingToPrice.put("CA76131D1033", 67.80);
+        isingToPrice.put("EU0009658368", 485.72);
+        isingToPrice.put("XC000A11Q9E3", 100.0);
+        isingToPrice.put("CH0011795959", 422.00);
+        isingToPrice.put("US0258161092", 152.76);
+        isingToPrice.put("DE0005439004", 62.76);
+        isingToPrice.put("FR0000131906", 34.74);
+        isingToPrice.put("DE000A1DAHH0", 71.36);
+        isingToPrice.put("DE0005557508", 21.39);
+        isingToPrice.put("FR0000045072", 11.68);
+        isingToPrice.put("XC000A13RM69", 11.37);
+        isingToPrice.put("AT0000746409", 84.60);
+        isingToPrice.put("NL0013332471", 6.26);
+        isingToPrice.put("DE000NWRK013", 72.70);
+        isingToPrice.put("BE0974258874", 39.14);
+        isingToPrice.put("FR0000124141", 26.85);
+        return isingToPrice;
+    }
+
     public List<MarketDataPrice> getPreviousDaySettlementPrices() {
         LOGGER.info("Fetching Eurex previous day settlement prices.");
 
@@ -84,28 +106,6 @@ public class EurexPreviousDaySettlementHandler {
                                 .build()
                 )
                 .toList();
-    }
-
-    private static Map<String, Double> isinToPriceMap() {
-        Map<String, Double> isingToPrice = new HashMap<>();
-        isingToPrice.put("DE000ENAG999", 11.37);
-        isingToPrice.put("CA76131D1033", 67.80);
-        isingToPrice.put("EU0009658368", 485.72);
-        isingToPrice.put("XC000A11Q9E3", 100.0);
-        isingToPrice.put("CH0011795959", 422.00);
-        isingToPrice.put("US0258161092", 152.76);
-        isingToPrice.put("DE0005439004", 62.76);
-        isingToPrice.put("FR0000131906", 34.74);
-        isingToPrice.put("DE000A1DAHH0", 71.36);
-        isingToPrice.put("DE0005557508", 21.39);
-        isingToPrice.put("FR0000045072", 11.68);
-        isingToPrice.put("XC000A13RM69", 11.37);
-        isingToPrice.put("AT0000746409", 84.60);
-        isingToPrice.put("NL0013332471", 6.26);
-        isingToPrice.put("DE000NWRK013", 72.70);
-        isingToPrice.put("BE0974258874", 39.14);
-        isingToPrice.put("FR0000124141", 26.85);
-        return isingToPrice;
     }
 
 }

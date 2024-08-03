@@ -97,6 +97,10 @@ public class PriceSnapshotCalculator {
     }
 
     public record TimeAndPrice(Timestamp timestamp, Price price, PriceType priceType) {
+        public static TimeAndPrice createInvalidPrice() {
+            return new TimeAndPrice(Timestamp.from(0), Price.EMPTY, null);
+        }
+
         boolean isValid() {
             return price != Price.EMPTY;
         }
@@ -106,10 +110,6 @@ public class PriceSnapshotCalculator {
                 return this;
             }
             return new TimeAndPrice(timestamp, price, priceType);
-        }
-
-        public static TimeAndPrice createInvalidPrice() {
-            return new TimeAndPrice(Timestamp.from(0), Price.EMPTY, null);
         }
     }
 }
