@@ -1,5 +1,7 @@
 package com.herron.exchange.pricingengine.server.snapshot;
 
+import com.herron.exchange.common.api.common.messages.common.Price;
+
 import java.time.Duration;
 
 public class SnapshotPriceThrottleFilter {
@@ -30,7 +32,8 @@ public class SnapshotPriceThrottleFilter {
             return true;
         }
 
-        return timeAndPrice.timestamp().timeBetweenMs(previousTimeAndPrice.timestamp()) >= minTimeBeforeUpdate.getSeconds() * 1000 &&
-                previousTimeAndPrice.price().percentageChange(timeAndPrice.price()) >= minPriceChange;
+        return timeAndPrice.timestamp().timeBetweenMs(previousTimeAndPrice.timestamp()) >= minTimeBeforeUpdate.getSeconds() * 1000
+                && !timeAndPrice.price().equals(Price.ZERO)
+                && previousTimeAndPrice.price().percentageChange(timeAndPrice.price()) >= minPriceChange;
     }
 }

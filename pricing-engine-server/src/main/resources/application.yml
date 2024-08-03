@@ -37,7 +37,7 @@ market-data:
     eurex:
       api-key: "e4182894-f5e1-42ae-90a7-7f04d760cd62"
       api-url: "https://api.developer.deutsche-boerse.com/accesstot7-referencedata-1-1-0/"
-      contractRequestLimit: 20
+      contractRequestLimit: 10
     nasdaq:
       api-key: "pLW2fjt4BxuzZSqy-4pT"
       api-url: "https://data.nasdaq.com/api/v3/datasets/USTREASURY/YIELD.json"

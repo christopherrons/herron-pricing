@@ -45,14 +45,24 @@ public class MarketDataService {
 
     public void init() {
         LOGGER.info("Init Market Data Repository.");
-        ExecutorService executor = Executors.newFixedThreadPool(3);
-        Runnable task1 = () -> externalMarketDataHandler.getPreviousDaySettlementPrices().forEach(this::addEntry);
-        Runnable task2 = () -> externalMarketDataHandler.getYieldCurves(LocalDate.now().minusDays(50), LocalDate.now()).forEach(this::addEntry);
-        Stream.of(task1, task2).forEach(executor::submit);
-        executor.shutdown();
-        try {
-            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-        } catch (InterruptedException e) {
+        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            Runnable task1 = () ->
+                    externalMarketDataHandler.getPreviousDaySettlementPrices().forEach(this::addEntry);
+
+            Runnable task2 = () ->
+                    externalMarketDataHandler.getYieldCurves(LocalDate.now().minusDays(50), LocalDate.now()).forEach(this::addEntry);
+
+            Stream.of(task1, task2).forEach(executor::submit);
+
+            executor.shutdown();
+            try {
+                if (!executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS)) {
+                    System.err.println("Executor did not terminate in the allocated time.");
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                System.err.println("Executor interrupted during termination.");
+            }
         }
 
         forwardPriceCurveHandler.createForwardPriceCurves(Timestamp.now()).forEach(this::addEntry);
